@@ -102,4 +102,5 @@ export enum PlatformRoute {
   PlatformControllerSettings = 'platform-controller-settings',
   CreateRole = 'platform-create-role',
   EditRole = 'platform-edit-role',
+  AutomationDashboardSettings = 'platform-automation-dashboard-settings',
 }

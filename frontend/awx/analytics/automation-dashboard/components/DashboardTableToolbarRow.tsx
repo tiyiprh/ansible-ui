@@ -1,5 +1,6 @@
-import { Flex, FlexItem, Switch } from '@patternfly/react-core';
+import { Checkbox, Grid, GridItem } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
+import { Help } from '../../../../../framework';
 import { DashboardTableInputField } from './DashboardTableInputField';
 import { DashboardTableToolbarProps, ISubscriptionCosts } from '../types';
 import { usePageAlertToaster } from '../../../../../framework';
@@ -9,7 +10,8 @@ import { metricsAPI } from '../../../common/api/metrics-utils';
 import { usePutRequest } from '../../../../common/crud/usePutRequest';
 import { useAwxActiveUser } from '../../../common/useAwxActiveUser';
 
-const SWITCH_ID = 'switch-time-taken-automation';
+const CHECKBOX_ID = 'checkbox-time-taken-automation';
+const AUTOMATION_CREATION_TIME_LABEL = 'Include automation creation time';
 
 export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
   const { costState, setCostState, refresh } = props;
@@ -91,15 +93,8 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
   };
 
   return (
-    <Flex
-      style={{
-        paddingBottom: 'var(--pf-t--global--spacer--action--horizontal--default)',
-      }}
-      direction={{ default: 'row' }}
-      rowGap={{ default: 'rowGapMd' }}
-      columnGap={{ default: 'columnGapMd' }}
-    >
-      <FlexItem>
+    <Grid hasGutter md={4}>
+      <GridItem>
         <DashboardTableInputField
           label={t('Hourly rate for manually running the job ({{currency}})', {
             currency: '$',
@@ -117,8 +112,8 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
           readOnly={controlsDisabled}
           error={errors?.engineer_avg_hourly_rate}
         />
-      </FlexItem>
-      <FlexItem>
+      </GridItem>
+      <GridItem>
         <DashboardTableInputField
           label={t('Monthly AAP cost ({{currency}})', { currency: '$' })}
           labelHelp={t(
@@ -134,20 +129,30 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
           readOnly={controlsDisabled}
           error={errors?.monthly_subscription_cost}
         />
-      </FlexItem>
-      <FlexItem alignSelf={{ default: 'alignSelfCenter' }}>
-        <Switch
-          id={SWITCH_ID + '-toggle'}
-          data-testid={SWITCH_ID + '-toggle'}
-          label={t('Include time taken to create automation into calculation')}
+      </GridItem>
+      <GridItem style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <Checkbox
+          id={CHECKBOX_ID}
+          data-testid={CHECKBOX_ID}
+          aria-label={t(AUTOMATION_CREATION_TIME_LABEL)}
+          label={
+            <>
+              {t(AUTOMATION_CREATION_TIME_LABEL)}
+              <Help
+                title={t(AUTOMATION_CREATION_TIME_LABEL)}
+                help={t(
+                  'When enabled, include the time spent building each job template when calculating manual cost, automated cost, and savings.'
+                )}
+              />
+            </>
+          }
           isChecked={costState?.include_template_creation_time_in_costs === true}
           onChange={(_e, value) => {
             void toolbarChangeHandler(value, 'include_template_creation_time_in_costs');
           }}
-          hasCheckIcon
           isDisabled={controlsDisabled}
         />
-      </FlexItem>
-    </Flex>
+      </GridItem>
+    </Grid>
   );
 }

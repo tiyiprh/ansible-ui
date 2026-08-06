@@ -1,5 +1,5 @@
 import { ButtonVariant } from '@patternfly/react-core';
-import { ComponentClass } from 'react';
+import { ComponentClass, ReactNode } from 'react';
 
 export const enum PageActionType {
   Button,
@@ -36,6 +36,7 @@ export type IPageAction<T extends object> =
 interface IPageActionCommon {
   icon?: ComponentClass;
   label: string;
+  description?: ReactNode;
   tooltip?: string;
   isDanger?: boolean;
   ouiaId?: string;

@@ -6,8 +6,19 @@ import { useTranslation } from 'react-i18next';
 import { DEFAULT_NUMBER_LOCALE } from '../constants/common';
 
 export function DashboardChartCard(props: DashboardChartCardProps) {
-  const { id, title, help, summaryValue, data, variant, error, errorStateTitle, legendLabel } =
-    props;
+  const {
+    id,
+    title,
+    help,
+    summaryValue,
+    data,
+    variant,
+    error,
+    errorStateTitle,
+    legendLabel,
+    width = 'md',
+    height = 'md',
+  } = props;
   const { t } = useTranslation();
   const blueColor = 'var(--pf-t--chart--color--blue--300)';
   const mapChartItem = (
@@ -65,7 +76,7 @@ export function DashboardChartCard(props: DashboardChartCardProps) {
     </Flex>
   );
   return (
-    <PageDashboardCard id={id} title={title} helpTitle={title} help={help} width="md" height="md">
+    <PageDashboardCard id={id} title={title} helpTitle={title} help={help} width={width} height={height}>
       {error ? <EmptyStateError titleProp={errorStateTitle} message={error.message} /> : content}
     </PageDashboardCard>
   );

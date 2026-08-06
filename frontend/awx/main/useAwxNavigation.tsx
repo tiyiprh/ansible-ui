@@ -40,6 +40,9 @@ import { useAwxTemplateRoutes } from './routes/useAwxTemplateRoutes';
 import { useAwxUsersRoutes } from './routes/useAwxUsersRoutes';
 import { useAwxWorkflowApprovalRoutes } from './routes/useAwxWorkflowApprovalRoutes';
 import { AutomationDashboard } from '../analytics/automation-dashboard/AutomationDashboard';
+import { AutomationDashboardPostGA } from '../analytics/automation-dashboard/AutomationDashboardPostGA';
+import { AutomationDashboardPostGADashboardTab } from '../analytics/automation-dashboard/post-ga/AutomationDashboardPostGADashboardTab';
+import { AutomationDashboardPostGALeaderboardsTab } from '../analytics/automation-dashboard/post-ga/AutomationDashboardPostGALeaderboardsTab';
 
 export function useAwxNavigation() {
   const { t } = useTranslation();
@@ -112,6 +115,28 @@ export function useAwxNavigation() {
           label: t('Automation Dashboard'),
           path: 'automation-dashboard',
           element: <AutomationDashboard />,
+        },
+        {
+          id: AwxRoute.AutomationDashboardPostGA,
+          label: t('Automation Dashboard'),
+          path: 'automation-dashboard/post-ga',
+          element: <AutomationDashboardPostGA />,
+          children: [
+            {
+              id: AwxRoute.AutomationDashboardPostGADashboard,
+              path: 'dashboard',
+              element: <AutomationDashboardPostGADashboardTab />,
+            },
+            {
+              id: AwxRoute.AutomationDashboardPostGALeaderboards,
+              path: 'leaderboards',
+              element: <AutomationDashboardPostGALeaderboardsTab />,
+            },
+            {
+              path: '',
+              element: <Navigate to="dashboard" replace />,
+            },
+          ],
         },
         {
           id: AwxRoute.AutomationCalculator,

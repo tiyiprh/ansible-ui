@@ -1,5 +1,4 @@
 import {
-  Form,
   FormGroup,
   FormHelperText,
   HelperText,
@@ -74,36 +73,34 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
   };
 
   return (
-    <Form onSubmit={(e) => e.preventDefault()}>
-      <FormGroup
-        fieldId={id}
-        label={label}
-        labelHelp={labelHelp ? <Help title={label} help={labelHelp} /> : undefined}
-        style={{ gridColumn: fullWidth ? 'span 24' : undefined }}
-        aria-invalid={error ? 'true' : 'false'}
-      >
-        <TextInput
-          style={{ textAlign: 'right' }}
-          id={id}
-          name={id}
-          onChange={(_event, value: string) => onChangeHandler(value)}
-          value={value ?? ''}
-          aria-describedby={id ? `${id}-form-group` : undefined}
-          type={'number'}
-          min={min}
-          max={max}
-          autoComplete={'off'}
-          data-testid={id}
-          isDisabled={readOnly === true}
-        />
-        {(error || errorMsg) && (
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        )}
-      </FormGroup>
-    </Form>
+    <FormGroup
+      fieldId={id}
+      label={label}
+      labelHelp={labelHelp ? <Help title={label} help={labelHelp} /> : undefined}
+      style={{ gridColumn: fullWidth ? 'span 24' : undefined }}
+      aria-invalid={error ? 'true' : 'false'}
+    >
+      <TextInput
+        style={{ textAlign: 'right' }}
+        id={id}
+        name={id}
+        onChange={(_event, value: string) => onChangeHandler(value)}
+        value={value ?? ''}
+        aria-describedby={id ? `${id}-form-group` : undefined}
+        type={'number'}
+        min={min}
+        max={max}
+        autoComplete={'off'}
+        data-testid={id}
+        isDisabled={readOnly === true}
+      />
+      {(error || errorMsg) && (
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
+          </HelperText>
+        </FormHelperText>
+      )}
+    </FormGroup>
   );
 }

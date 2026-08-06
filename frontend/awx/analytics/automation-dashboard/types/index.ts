@@ -2,6 +2,7 @@ import { ComponentClass, Dispatch, SetStateAction } from 'react';
 import {
   IFilterState,
   IToolbarFilter,
+  PageDashboardCardHeight,
   PageDashboardCardWidth,
 } from '@ansible/ansible-ui-framework';
 import { IAutomationDashboardBaseView } from '../common/useAutomationDashboardBaseView';
@@ -115,6 +116,8 @@ export type DashboardValueCardProps = Readonly<
     formatAsCurrency?: boolean;
     linkText?: string;
     to?: string;
+    /** When 'section', renders title as h4 section heading inside card body instead of card header. */
+    titleVariant?: 'card' | 'section';
   }
 >;
 
@@ -134,6 +137,7 @@ export type DashboardChartCardProps = DashboardCommonCardProps & {
   data: IDashboardChart;
   /** Label shown in the chart legend for the data series. Defaults to a generic "Count" label. */
   legendLabel?: string;
+  height?: PageDashboardCardHeight;
 };
 
 export type DashboardTableInputFieldProps = {

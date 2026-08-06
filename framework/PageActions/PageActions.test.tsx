@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -174,6 +175,34 @@ describe('PageActions', () => {
 
       expect(screen.getByRole('button', { name: 'Pinned' })).toBeDefined();
       expect(screen.getAllByRole('button').length).toBeGreaterThan(1);
+    });
+
+    it('should render description on dropdown menu items when provided', async () => {
+      const user = userEvent.setup();
+      const actions: IPageAction<TestItem>[] = [
+        {
+          type: PageActionType.Dropdown,
+          selection: PageActionSelection.None,
+          label: 'Actions',
+          isPinned: true,
+          actions: [
+            {
+              type: PageActionType.Button,
+              selection: PageActionSelection.None,
+              label: 'Create item',
+              description: 'Save the current configuration as a new item',
+              onClick: vi.fn(),
+            },
+          ],
+        },
+      ];
+
+      renderWithRouter(<PageActions actions={actions} />);
+      await user.click(screen.getByTestId('actions'));
+
+      expect(
+        screen.getByText('Save the current configuration as a new item')
+      ).toBeInTheDocument();
     });
   });
 });

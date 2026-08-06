@@ -39,7 +39,17 @@ function getSaveDisabledReason(
 ): string | undefined {
   if (superuserDisabledReason) return superuserDisabledReason;
   if (!validFilters) return t('Enter a valid custom date range before saving');
-  if (isDefaultFilterState(filterState)) return t('Modify filters before saving as a report');
+  if (isDefaultFilterState(filterState)) return t('Change filters to save as a new report');
+  return undefined;
+}
+
+function getEditDisabledReason(
+  superuserDisabledReason: string | undefined,
+  validFilters: boolean,
+  t: (key: string) => string
+): string | undefined {
+  if (superuserDisabledReason) return superuserDisabledReason;
+  if (!validFilters) return t('Enter a valid custom date range before updating');
   return undefined;
 }
 
@@ -75,9 +85,14 @@ export function useAutomationDashboardToolbarActions(props: {
     t
   );
 
+  // Editing a report's name and/or persisting the current filter state to it is
+  // valid regardless of the default/non-default filter state, but the current
+  // filter state must still be valid to be persisted.
+  const editDisabledReason = getEditDisabledReason(superuserDisabledReason, validFilters, t);
+
   return useMemo<IPageAction<IJobTemplate>[]>(
     () =>
-      selectedFilterSet && validFilters
+      selectedFilterSet
         ? [
             {
               type: PageActionType.Dropdown,
@@ -85,13 +100,14 @@ export function useAutomationDashboardToolbarActions(props: {
               variant: ButtonVariant.primary,
               isPinned: true,
               selection: PageActionSelection.None,
-              label: t('Save as report'),
+              label: t('Report actions'),
               actions: [
                 {
                   type: PageActionType.Button,
                   icon: PlusCircleIcon,
                   selection: PageActionSelection.None,
-                  label: t('Save report'),
+                  label: t('Create new report'),
+                  description: t('Save the current filter set as a new report'),
                   isDisabled: saveDisabledReason,
                   onClick: () => (filterState ? createToolbarFilterSet(filterState) : {}),
                 },
@@ -99,13 +115,15 @@ export function useAutomationDashboardToolbarActions(props: {
                   type: PageActionType.Button,
                   icon: PencilAltIcon,
                   selection: PageActionSelection.None,
-                  label: t('Rename report'),
-                  isDisabled: saveDisabledReason,
+                  label: t('Update report'),
+                  description: t("Replace this report's saved filters with the current view"),
+                  isDisabled: editDisabledReason,
                   onClick: () =>
                     filterState && selectedFilterSet
                       ? updateToolbarFilterSet(selectedFilterSet, filterState)
                       : {},
                 },
+                { type: PageActionType.Seperator },
                 {
                   type: PageActionType.Button,
                   selection: PageActionSelection.None,
@@ -125,7 +143,8 @@ export function useAutomationDashboardToolbarActions(props: {
               variant: ButtonVariant.primary,
               isPinned: true,
               selection: PageActionSelection.None,
-              label: t('Save as report'),
+              label: t('Create new report'),
+              description: t('Save the current filter set as a new report'),
               isDisabled: saveDisabledReason,
               onClick: () => (filterState ? createToolbarFilterSet(filterState) : {}),
             },
@@ -134,12 +153,12 @@ export function useAutomationDashboardToolbarActions(props: {
       selectedFilterSet,
       t,
       saveDisabledReason,
+      editDisabledReason,
       superuserDeleteDisabledReason,
       filterState,
       createToolbarFilterSet,
       updateToolbarFilterSet,
       removeToolbarFilterSet,
-      validFilters,
     ]
   );
 }

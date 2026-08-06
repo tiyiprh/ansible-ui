@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { EmptyStateError } from '../../../../../framework/components/EmptyStateError';
 import { currencyFormatter } from '../../utilities/currencyFormatter';
 import { DEFAULT_NUMBER_LOCALE } from '../constants/common';
+import { DashboardSectionHeading } from '../post-ga/DashboardSectionHeading';
 
 export function DashboardValueCard(props: DashboardValueCardProps) {
   const {
@@ -19,6 +20,7 @@ export function DashboardValueCard(props: DashboardValueCardProps) {
     errorStateTitle,
     formatAsCurrency,
     width,
+    titleVariant = 'card',
   } = props;
 
   const contentValue =
@@ -41,7 +43,7 @@ export function DashboardValueCard(props: DashboardValueCardProps) {
       </span>
     );
 
-  const content = (
+  const bodyContent = (
     <Flex
       style={{ height: '100%' }}
       spaceItems={{ default: 'spaceItemsLg' }}
@@ -49,6 +51,11 @@ export function DashboardValueCard(props: DashboardValueCardProps) {
       justifyContent={{ default: 'justifyContentFlexStart' }}
       direction={{ default: 'column' }}
     >
+      {titleVariant === 'section' && help && (
+        <FlexItem>
+          <DashboardSectionHeading title={title} help={help} />
+        </FlexItem>
+      )}
       {linkText && to && (
         <FlexItem>
           <Content data-cy="card-link-text" data-testid="card-link-text" component="small">
@@ -60,15 +67,20 @@ export function DashboardValueCard(props: DashboardValueCardProps) {
       {contentValue}
     </Flex>
   );
+
   return (
     <PageDashboardCard
       id={id}
-      title={title}
-      helpTitle={help ? title : undefined}
-      help={help}
+      title={titleVariant === 'card' ? title : undefined}
+      helpTitle={titleVariant === 'card' && help ? title : undefined}
+      help={titleVariant === 'card' ? help : undefined}
       width={width ?? 'md'}
     >
-      {error ? <EmptyStateError titleProp={errorStateTitle} message={error.message} /> : content}
+      {error ? (
+        <EmptyStateError titleProp={errorStateTitle} message={error.message} />
+      ) : (
+        bodyContent
+      )}
     </PageDashboardCard>
   );
 }

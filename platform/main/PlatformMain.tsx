@@ -15,8 +15,9 @@ import { EdaActiveUserProvider } from '@ansible/eda-ui/common/useEdaActiveUser';
 import { HubActiveUserProvider } from '@ansible/hub-ui/common/useHubActiveUser';
 import { HubContextProvider } from '@ansible/hub-ui/common/useHubContext';
 import { Bullseye, Spinner } from '@patternfly/react-core';
-import { Suspense } from 'react';
+import { Fragment, Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { PrototypeBanner } from '../common/PrototypeBanner';
 import { QuickStartProvider } from '../overview/quickstarts/QuickStartProvider';
 import { gatewayAPI } from '../utils/gateway-api-utils';
 import {
@@ -31,10 +32,13 @@ import { PlatformApp } from './PlatformApp';
 import { PlatformLogin } from './PlatformLogin';
 import { PlatformSubscription } from './PlatformSubscription';
 
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
 // eslint-disable-next-line no-restricted-exports
 export default function PlatformMain() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <PrototypeBanner />
       <Suspense
         fallback={
           <Bullseye>
@@ -73,11 +77,14 @@ export function PlatformMainInternal() {
   const hasHub = useHasHubService();
   const hasEda = useHasEdaService();
 
+  // Skip WebSocket in demo mode — no real backend to connect to
+  const WebSocketWrapper = isDemoMode ? Fragment : WebSocketProvider;
+
   return (
     <QuickStartProvider>
       <EdaActiveUserProvider disabled={!hasEda}>
         <DocsVersionProvider version={platformVersion}>
-          <WebSocketProvider>
+          <WebSocketWrapper>
             <AwxConfigProvider disabled={!hasAwx}>
               <HubContextProvider disabled={!hasHub}>
                 <ChatbotProvider>
@@ -87,7 +94,7 @@ export function PlatformMainInternal() {
                 </ChatbotProvider>
               </HubContextProvider>
             </AwxConfigProvider>
-          </WebSocketProvider>
+          </WebSocketWrapper>
         </DocsVersionProvider>
       </EdaActiveUserProvider>
     </QuickStartProvider>

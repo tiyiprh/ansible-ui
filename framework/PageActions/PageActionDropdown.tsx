@@ -242,6 +242,7 @@ function PageActionButton<T extends object>(
           id={getID(action)}
           data-cy={getID(action)?.split('.').join('-')}
           data-testid={getID(action)?.split('.').join('-')}
+          description={action.description}
           isAriaDisabled={isButtonDisabled}
           onClick={() => {
             switch (action.selection) {

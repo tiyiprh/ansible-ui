@@ -90,11 +90,11 @@ describe('DashboardTableToolbarRow', () => {
 
   // --- Rendering ---
 
-  test('should render all inputs and switch', () => {
+  test('should render all inputs and checkbox', () => {
     renderRow();
     expect(screen.getByTestId('engineer_avg_hourly_rate')).toBeInTheDocument();
     expect(screen.getByTestId('monthly_subscription_cost')).toBeInTheDocument();
-    expect(screen.getByTestId('switch-time-taken-automation-toggle')).toBeInTheDocument();
+    expect(screen.getByTestId('checkbox-time-taken-automation')).toBeInTheDocument();
   });
 
   test('should display initial values from costState', () => {
@@ -103,18 +103,18 @@ describe('DashboardTableToolbarRow', () => {
     expect(screen.getByTestId('monthly_subscription_cost')).toHaveValue(100);
   });
 
-  test('should show switch as checked when include_template_creation_time_in_costs is true', () => {
+  test('should show checkbox as checked when include_template_creation_time_in_costs is true', () => {
     renderRow(
       buildProps({
         costState: { ...defaultCostState, include_template_creation_time_in_costs: true },
       })
     );
-    expect(screen.getByTestId('switch-time-taken-automation-toggle')).toBeChecked();
+    expect(screen.getByTestId('checkbox-time-taken-automation')).toBeChecked();
   });
 
-  test('should show switch as unchecked when include_template_creation_time_in_costs is false', () => {
+  test('should show checkbox as unchecked when include_template_creation_time_in_costs is false', () => {
     renderRow();
-    expect(screen.getByTestId('switch-time-taken-automation-toggle')).not.toBeChecked();
+    expect(screen.getByTestId('checkbox-time-taken-automation')).not.toBeChecked();
   });
 
   test('should render without crashing when costState is undefined', () => {
@@ -123,12 +123,12 @@ describe('DashboardTableToolbarRow', () => {
   });
 
   // --- Inputs disabled ---
-  test('should disable cost inputs and switch when not superuser', () => {
+  test('should disable cost inputs and checkbox when not superuser', () => {
     mockUseAwxActiveUser.mockReturnValue({ activeAwxUser: { is_superuser: false } });
     renderRow();
     expect(screen.getByTestId('engineer_avg_hourly_rate')).toBeDisabled();
     expect(screen.getByTestId('monthly_subscription_cost')).toBeDisabled();
-    expect(screen.getByTestId('switch-time-taken-automation-toggle')).toBeDisabled();
+    expect(screen.getByTestId('checkbox-time-taken-automation')).toBeDisabled();
   });
 
   test('should not call put when not superuser', async () => {
@@ -176,10 +176,10 @@ describe('DashboardTableToolbarRow', () => {
     expect(mockRefresh).toHaveBeenCalled();
   });
 
-  test('should show success alert when switch is toggled', async () => {
+  test('should show success alert when checkbox is toggled', async () => {
     const user = userEvent.setup();
     renderRow();
-    await user.click(screen.getByTestId('switch-time-taken-automation-toggle'));
+    await user.click(screen.getByTestId('checkbox-time-taken-automation'));
     await waitFor(() =>
       expect(screen.getByText(/Subscription costs updated successfully/i)).toBeInTheDocument()
     );

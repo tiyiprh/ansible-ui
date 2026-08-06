@@ -34,6 +34,8 @@ import { useGetPlatformResourceRoutes } from '../routes/useGetPlatformResourceRo
 import { useGetPlatformRolesRoutes } from '../routes/useGetPlatformRolesRoutes';
 import { useGetPlatformTeamsRoutes } from '../routes/useGetPlatformTeamsRoutes';
 import { useGetPlatformUsersRoutes } from '../routes/useGetPlatformUsersRoutes';
+import { AutomationDashboardSettingsDetails } from '../settings/AutomationDashboardSettingsDetails';
+import { AutomationDashboardSettingsEdit } from '../settings/AutomationDashboardSettingsEdit';
 import { GatewaySettings } from '../settings/GatewaySettings';
 import { GatewaySettingsDetails } from '../settings/GatewaySettingsDetails';
 import { GatewaySettingsEdit } from '../settings/GatewaySettingsEdit';
@@ -199,6 +201,13 @@ export function usePlatformNavigation() {
       }
     }
 
+    // ── Demo mode: scope nav to prototype pages only ──────────────────────────
+    // When VITE_DEMO_MODE is set, hide everything except the Post GA dashboard
+    // and the Automation Dashboard Settings page so the prototype is focused.
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
+      return buildDemoNavigation(navigationItems);
+    }
+
     return navigationItems;
   }, [
     t,
@@ -217,6 +226,52 @@ export function usePlatformNavigation() {
   ]);
 
   return pageNavigationItems;
+}
+
+/**
+ * In demo mode (VITE_DEMO_MODE=true), return a minimal navigation containing
+ * only the Post GA prototype pages so reviewers aren't distracted by the full
+ * platform navigation.
+ *
+ * We preserve the original full item tree (all routes registered) so deep-links
+ * to the prototype pages still resolve — we just hide everything else in the
+ * sidebar.
+ */
+function buildDemoNavigation(allItems: PageNavigationItem[]): PageNavigationItem[] {
+  // Mark all top-level items hidden, then selectively reveal the two prototype sections
+  const items = allItems.map((item) => ({ ...item, hidden: true }));
+
+  // Reveal Automation Analytics (contains Post GA dashboard child)
+  const analyticsId = AwxRoute.Analytics as string;
+  const analyticsItem = findNavigationItemById(items, analyticsId);
+  if (analyticsItem) {
+    // Make Analytics visible
+    (analyticsItem as PageNavigationItem & { hidden: boolean }).hidden = false;
+
+    // Hide all children except Post GA dashboard
+    if ('children' in analyticsItem && Array.isArray(analyticsItem.children)) {
+      analyticsItem.children = analyticsItem.children.map((child) => ({
+        ...child,
+        hidden: child.id !== (AwxRoute.AutomationDashboardPostGA as string),
+      }));
+    }
+  }
+
+  // Reveal Settings (contains Automation Dashboard settings child)
+  // The Settings group uses AwxRoute.Settings as its id (see usePlatformSettingsNavigation)
+  const settingsId = AwxRoute.Settings as string;
+  const settingsItem = findNavigationItemById(items, settingsId);
+  if (settingsItem) {
+    (settingsItem as PageNavigationItem & { hidden: boolean }).hidden = false;
+    if ('children' in settingsItem && Array.isArray(settingsItem.children)) {
+      settingsItem.children = settingsItem.children.map((child) => ({
+        ...child,
+        hidden: child.id !== (PlatformRoute.AutomationDashboardSettings as string),
+      }));
+    }
+  }
+
+  return items;
 }
 
 function useAutomationExecutionNavigation(): PageNavigationItem {
@@ -483,6 +538,17 @@ function usePlatformSettingsNavigation(): PageNavigationItem {
     ],
   };
   settingsNav.push(userPreferences);
+
+  // Automation Dashboard Settings — Post GA prototype (AAP-85988)
+  settingsNav.push({
+    id: PlatformRoute.AutomationDashboardSettings,
+    label: t('Automation Dashboard'),
+    path: 'automation-dashboard',
+    children: [
+      { path: 'edit', element: <AutomationDashboardSettingsEdit /> },
+      { path: '', element: <AutomationDashboardSettingsDetails /> },
+    ],
+  });
 
   settingsNav.push({
     id: PlatformRoute.PlatformControllerSettings,

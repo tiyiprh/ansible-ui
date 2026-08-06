@@ -1,10 +1,11 @@
 import {
   ITableColumn,
   PageDashboardCard,
+  PageDashboardContext,
   PageTable,
   usePageAlertToaster,
 } from '@ansible/ansible-ui-framework';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IAutomationDashboardView, IJobTemplate } from '../types';
 import { DashboardTableInputField } from './DashboardTableInputField';
@@ -15,7 +16,6 @@ import { currencyFormatter } from '../../utilities/currencyFormatter';
 import { awxErrorAdapter } from '../../../common/adapters/awxErrorAdapter';
 import { metricsAPI } from '../../../common/api/metrics-utils';
 import { useAwxActiveUser } from '../../../common/useAwxActiveUser';
-import useResizeObserver from '@react-hook/resize-observer';
 import { CardBody } from '@patternfly/react-core';
 import styled from 'styled-components';
 import { ExportIcon } from '@patternfly/react-icons';
@@ -26,9 +26,6 @@ interface IJobTemplateModify {
   time_taken_manually_execute_minutes: number;
   time_taken_create_automation_minutes: number;
 }
-
-// Uses 1610px instead of PageDashboard's 1662px to account for card padding
-const GRID_COLUMN_WIDTH = 1610 / 24; // ~67px per column
 
 /** Fixed width (px) for time-input columns to keep editable fields consistently sized. */
 const TIME_COLUMN_WIDTH = 212;
@@ -63,20 +60,8 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
   const { activeAwxUser } = useAwxActiveUser();
   const putRequest = usePutRequest<IJobTemplateModify, IJobTemplateModify>();
   const alertToaster = usePageAlertToaster();
-
-  const ref = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(1);
+  const { columns } = useContext(PageDashboardContext);
   const filtersValid = hasValidRequiredFilters(toolbarFilters, mainTableView.filterState);
-  const calculateGridColumns = (width: number) =>
-    Math.max(1, Math.floor(width / GRID_COLUMN_WIDTH));
-
-  useLayoutEffect(() => {
-    setColumns(calculateGridColumns(ref.current?.clientWidth ?? 0));
-  }, []);
-
-  useResizeObserver(ref, (entry) => {
-    setColumns(calculateGridColumns(entry.contentRect.width));
-  });
 
   const [errors, setErrors] = useState<Record<
     number,
@@ -278,15 +263,19 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
       style={{ gridColumn: `span ${MAIN_TABLE_FULL_SPAN}` }}
       headerControls={exportButton}
     >
-      <CardBody>
+      <CardBody style={{ paddingBlockStart: 0 }}>
         <DashboardTableToolbarRow
           costState={costState}
           setCostState={setCostState}
           refresh={refresh}
         ></DashboardTableToolbarRow>
         <div
-          ref={ref}
-          style={{ display: 'grid', gap: 16, gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+          style={{
+            display: 'grid',
+            gap: 16,
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            marginTop: 'var(--pf-t--global--spacer--lg)',
+          }}
         >
           <DashboardValueCard
             id="cost-manual-automation-card"
@@ -297,6 +286,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
             error={detailsError}
             errorStateTitle={t('Error loading manual automation cost')}
             width={topCardsWidth}
+            titleVariant="section"
           ></DashboardValueCard>
           <DashboardValueCard
             id="cost-automated-execution-card"
@@ -307,6 +297,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
             error={detailsError}
             errorStateTitle={t('Error loading automated execution cost')}
             width={topCardsWidth}
+            titleVariant="section"
           ></DashboardValueCard>
           <DashboardValueCard
             id="total-savings-card"
@@ -317,6 +308,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
             error={detailsError}
             errorStateTitle={t('Error loading total savings')}
             width={topCardsWidth}
+            titleVariant="section"
           ></DashboardValueCard>
           <DashboardValueCard
             id="total-hours-saved-card"
@@ -327,6 +319,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
             error={detailsError}
             errorStateTitle={t('Error loading total hours saved')}
             width={topCardsWidth}
+            titleVariant="section"
           ></DashboardValueCard>
         </div>
       </CardBody>
