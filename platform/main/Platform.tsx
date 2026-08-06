@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { createRoot } from 'react-dom/client';
+import { demoDashboardUrl, isDemoLandingPath } from './demoPrototypePaths';
 
 const Main = lazy(() => import('./PlatformMain'));
 document.body.innerHTML = '<div id="app"></div>';
@@ -23,12 +24,9 @@ async function enableDemoMocks() {
 
 void enableDemoMocks().then(() => {
   const basePath = (import.meta.env.BASE_URL as string) ?? '/';
-  // In demo mode, redirect from the root to the Post GA dashboard
-  if (
-    import.meta.env.VITE_DEMO_MODE === 'true' &&
-    (window.location.pathname === basePath || window.location.pathname === basePath.replace(/\/$/, ''))
-  ) {
-    window.history.replaceState({}, '', `${basePath}analytics/automation-dashboard/post-ga/dashboard`);
+  // In demo mode, redirect root and legacy standalone bookmark to the Post GA dashboard tab
+  if (import.meta.env.VITE_DEMO_MODE === 'true' && isDemoLandingPath(window.location.pathname, basePath)) {
+    window.history.replaceState({}, '', demoDashboardUrl(basePath));
   }
   const root = createRoot(document.getElementById('app')!);
   root.render(<Main />);

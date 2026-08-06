@@ -54,6 +54,10 @@ import { PlatformRoute } from './PlatformRoutes';
 import { Redirect } from './Redirect';
 import { usePersonaView } from './persona-view/usePersonaView';
 import { useAutomationDashboardCollectionStatus } from '../../frontend/awx/analytics/automation-dashboard/common/useAutomationDashboardCollectionStatus';
+import {
+  DEMO_AUTOMATION_DASHBOARD_PATH,
+  LEGACY_AUTOMATION_DASHBOARD_PATH,
+} from './demoPrototypePaths';
 
 export function usePlatformNavigation() {
   const { t } = useTranslation();
@@ -205,6 +209,24 @@ export function usePlatformNavigation() {
     // When VITE_DEMO_MODE is set, hide everything except the Post GA dashboard
     // and the Dashboard settings page so the prototype is focused.
     if (import.meta.env.VITE_DEMO_MODE === 'true') {
+      const dashboardRedirect = <Navigate to={`/${DEMO_AUTOMATION_DASHBOARD_PATH}`} replace />;
+
+      const rootItem = navigationItems.find((item) => item.id === PlatformRoute.Root);
+      if (rootItem) {
+        rootItem.element = dashboardRedirect;
+      }
+
+      const overviewItem = findNavigationItemById(navigationItems, PlatformRoute.Overview);
+      if (overviewItem) {
+        overviewItem.element = dashboardRedirect;
+      }
+
+      // Legacy bookmark from standalone prototype: /automation-dashboard-b
+      navigationItems.push({
+        path: LEGACY_AUTOMATION_DASHBOARD_PATH,
+        element: dashboardRedirect,
+      });
+
       return buildDemoNavigation(navigationItems);
     }
 
