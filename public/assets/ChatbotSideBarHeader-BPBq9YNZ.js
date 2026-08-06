@@ -1,4 +1,4 @@
-import{dN as i}from"./patternfly-DN_NnMbi.js";import{i as a,L as r,V as s}from"./ansible-chatbot-CllbR1u4.js";import{u as o,d as e}from"./PlatformMain-D9D7tVKn.js";import"./monaco-editor-BQ8JevsY.js";import"./pfcharts-BXk5h8no.js";import"./monaco-yaml-CxZABqKh.js";const n=e.img`
+import{dN as i}from"./patternfly-CFQzoUox.js";import{i as a,L as r,V as s}from"./ansible-chatbot-FOIqGXfM.js";import{u as o,d as e}from"./PlatformMain-7ZaaoMD5.js";import"./monaco-editor-BQ8JevsY.js";import"./pfcharts-DXxvbc6m.js";import"./monaco-yaml-CxZABqKh.js";const n=e.img`
   height: 40px;
   display: inline-block;
   vertical-align: middle;
