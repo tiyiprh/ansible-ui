@@ -11,7 +11,7 @@ import './post-ga/postGa.css';
 export function AutomationDashboardPostGA() {
   const { t } = useTranslation();
   const description = t(
-    'Discover the significant cost and time savings achieved by automating Ansible jobs with the Ansible Automation Platform. Explore how automation reduces manual effort, enhances efficiency, and optimizes IT operations across your organization.'
+    'View automation performance, goals, and cost savings for your organization. Filter by period and organization, or save custom views as reports.'
   );
   const { isLoading } = useAutomationDashboardCollectionStatus();
 

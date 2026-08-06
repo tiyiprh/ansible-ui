@@ -100,7 +100,7 @@ export function DashboardGoalsCard() {
             <DashboardSectionHeading
               title={t('Quarterly automation goal')}
               help={t(
-                'Enterprise-wide target for automation job runs this quarter. The progress bar shows how many runs have been completed toward the goal; use it to track team adoption and capacity planning.'
+                'Target number of automation job runs for your organization this quarter. The progress bar shows how many runs you have completed toward that goal.'
               )}
             />
             <div
@@ -131,7 +131,7 @@ export function DashboardGoalsCard() {
             <DashboardSectionHeading
               title={t('Cost savings this month')}
               help={t(
-                'Estimated savings from running jobs on automation instead of manually, for the current month. Compare to your goal and to last month to track trend.'
+                'Estimated savings from automation instead of manual work this month. Compare your progress to your goal and to last month.'
               )}
             />
             <div

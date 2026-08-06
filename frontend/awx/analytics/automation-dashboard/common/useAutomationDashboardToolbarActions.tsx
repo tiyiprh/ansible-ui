@@ -9,27 +9,13 @@ import { ButtonVariant } from '@patternfly/react-core';
 import { PencilAltIcon, PlusCircleIcon, TrashIcon } from '@patternfly/react-icons';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AutomationDashboardDateRangeFilterPresets } from '../constants';
 import { IDashboardFilterSet, IJobTemplate } from '../types';
 import { useCreateToolbarFilterSet } from './useCreateToolbarFilterSet';
 import { useRemoveToolbarFilterSet } from './useRemoveToolbarFilterSet';
 import { useUpdateToolbarFilterSet } from './useUpdateToolbarFilterSet';
 import { useAwxActiveUser } from '../../../common/useAwxActiveUser';
 import { hasValidRequiredFilters } from '../utils/queryString';
-
-/** Returns true when filterState is empty or equals the default (period = last 7 days only). */
-function isDefaultFilterState(filterState: IFilterState | undefined): boolean {
-  if (!filterState) return true;
-  const activeEntries = Object.entries(filterState).filter(([, v]) => v && v.length > 0);
-  if (activeEntries.length === 0) return true;
-  return (
-    activeEntries.length === 1 &&
-    activeEntries[0][0] === 'period' &&
-    activeEntries[0][1]?.length === 1 &&
-    (activeEntries[0][1][0] as AutomationDashboardDateRangeFilterPresets) ===
-      AutomationDashboardDateRangeFilterPresets.last_7_days
-  );
-}
+import { isDefaultAutomationDashboardFilterState } from '../utils/defaultFilterState';
 
 function getSaveDisabledReason(
   superuserDisabledReason: string | undefined,
@@ -39,7 +25,7 @@ function getSaveDisabledReason(
 ): string | undefined {
   if (superuserDisabledReason) return superuserDisabledReason;
   if (!validFilters) return t('Enter a valid custom date range before saving');
-  if (isDefaultFilterState(filterState)) return t('Change filters to save as a new report');
+  if (isDefaultAutomationDashboardFilterState(filterState)) return t('Change filters to save as a new report');
   return undefined;
 }
 
@@ -96,7 +82,6 @@ export function useAutomationDashboardToolbarActions(props: {
         ? [
             {
               type: PageActionType.Dropdown,
-              icon: PlusCircleIcon,
               variant: ButtonVariant.primary,
               isPinned: true,
               selection: PageActionSelection.None,

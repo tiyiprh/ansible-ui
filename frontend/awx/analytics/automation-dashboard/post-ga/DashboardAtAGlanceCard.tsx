@@ -105,7 +105,7 @@ export function DashboardAtAGlanceCard() {
                   <>
                     <Content component="p" style={{ marginBottom: 12 }}>
                       {t(
-                        'A score from 1–{{total}} based on adoption, consistency, scale, and governance across the platform. Higher levels indicate more mature, standardized automation.',
+                        'Your score ranges from 1 to {{total}} based on adoption, consistency, scale, and governance. Higher levels mean more mature, standardized automation.',
                         { total: levelCount }
                       )}
                     </Content>
@@ -163,7 +163,7 @@ export function DashboardAtAGlanceCard() {
             <DashboardSectionHeading
               title={t('Success streak')}
               help={t(
-                'Shows whether you had at least one successful job run each day over the last 30 days. Green = one or more successful runs that day; gray = no successful runs.'
+                'Shows whether you had at least one successful job run each day over the last 30 days. Green means at least one successful run that day. Gray means no successful runs.'
               )}
             />
             <MetricLabel>{t('Last {{days}} days', { days: STREAK_PERIOD_DAYS })}</MetricLabel>

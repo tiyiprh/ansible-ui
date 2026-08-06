@@ -371,7 +371,7 @@ export function AutomationDashboardLeaderboards() {
                   id="leaderboard-users-card"
                   title={t('Top 5 users')}
                   help={t(
-                    'Users ranked by automation runs they triggered or that ran in their context in the selected period.'
+                    'Users ranked by the automation runs they triggered in the selected period.'
                   )}
                   isEmpty
                   emptyTitle={t('No user data')}
@@ -392,7 +392,7 @@ export function AutomationDashboardLeaderboards() {
                   id="leaderboard-human-hours-card"
                   title={t('Human hours reclaimed')}
                   help={t(
-                    'Users ranked by collective hours saved this month from templates they created or own.'
+                    'Users ranked by the hours your organization saved this month from templates they created or own.'
                   )}
                   isEmpty={filteredHumanHoursReclaimed.length === 0}
                   emptyTitle={t('No data')}

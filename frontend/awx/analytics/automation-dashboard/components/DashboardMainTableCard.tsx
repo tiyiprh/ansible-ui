@@ -280,7 +280,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
           <DashboardValueCard
             id="cost-manual-automation-card"
             title={t('Cost of manual automation')}
-            help={t('Total cost if all jobs were run manually')}
+            help={t('Estimated total cost if you ran all jobs manually.')}
             value={details?.cost_of_manual_automation ?? '-'}
             formatAsCurrency={true}
             error={detailsError}
@@ -291,7 +291,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
           <DashboardValueCard
             id="cost-automated-execution-card"
             title={t('Cost of automated execution')}
-            help={t('Total cost of running jobs on AAP')}
+            help={t('Estimated total cost of running jobs on Ansible Automation Platform.')}
             value={details?.cost_of_automated_execution ?? '-'}
             formatAsCurrency={true}
             error={detailsError}
@@ -302,7 +302,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
           <DashboardValueCard
             id="total-savings-card"
             title={t('Total savings/cost avoided')}
-            help={t('Difference between manual and automated cost')}
+            help={t('Difference between manual and automated cost for the selected period.')}
             value={details?.total_saving ?? '-'}
             formatAsCurrency={true}
             error={detailsError}
@@ -313,7 +313,7 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
           <DashboardValueCard
             id="total-hours-saved-card"
             title={t('Total hours saved/avoided')}
-            help={t('Time saved by automation vs manual execution')}
+            help={t('Estimated time saved by automation compared with manual execution.')}
             value={details?.total_time_saving ?? '-'}
             valueSuffix={details?.total_time_saving ? 'h' : undefined}
             error={detailsError}

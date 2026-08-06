@@ -203,7 +203,7 @@ export function usePlatformNavigation() {
 
     // ── Demo mode: scope nav to prototype pages only ──────────────────────────
     // When VITE_DEMO_MODE is set, hide everything except the Post GA dashboard
-    // and the Automation Dashboard Settings page so the prototype is focused.
+    // and the Dashboard settings page so the prototype is focused.
     if (import.meta.env.VITE_DEMO_MODE === 'true') {
       return buildDemoNavigation(navigationItems);
     }
@@ -257,17 +257,26 @@ function buildDemoNavigation(allItems: PageNavigationItem[]): PageNavigationItem
     }
   }
 
-  // Reveal Settings (contains Automation Dashboard settings child)
+  // Reveal Settings (contains Automation Analytics → Dashboard settings)
   // The Settings group uses AwxRoute.Settings as its id (see usePlatformSettingsNavigation)
   const settingsId = AwxRoute.Settings as string;
   const settingsItem = findNavigationItemById(items, settingsId);
   if (settingsItem) {
     (settingsItem as PageNavigationItem & { hidden: boolean }).hidden = false;
     if ('children' in settingsItem && Array.isArray(settingsItem.children)) {
-      settingsItem.children = settingsItem.children.map((child) => ({
-        ...child,
-        hidden: child.id !== (PlatformRoute.AutomationDashboardSettings as string),
-      }));
+      settingsItem.children = settingsItem.children.map((child) => {
+        if (child.id === (PlatformRoute.AutomationAnalyticsSettings as string)) {
+          return {
+            ...child,
+            hidden: false,
+            children: child.children?.map((grandchild) => ({
+              ...grandchild,
+              hidden: grandchild.id !== (PlatformRoute.AutomationDashboardSettings as string),
+            })),
+          };
+        }
+        return { ...child, hidden: true };
+      });
     }
   }
 
@@ -539,14 +548,21 @@ function usePlatformSettingsNavigation(): PageNavigationItem {
   };
   settingsNav.push(userPreferences);
 
-  // Automation Dashboard Settings — Post GA prototype (AAP-85988)
+  // Dashboard settings — Post GA prototype (AAP-85988)
   settingsNav.push({
-    id: PlatformRoute.AutomationDashboardSettings,
-    label: t('Automation Dashboard'),
-    path: 'automation-dashboard',
+    id: PlatformRoute.AutomationAnalyticsSettings,
+    label: t('Automation Analytics'),
+    path: 'automation-analytics',
     children: [
-      { path: 'edit', element: <AutomationDashboardSettingsEdit /> },
-      { path: '', element: <AutomationDashboardSettingsDetails /> },
+      {
+        id: PlatformRoute.AutomationDashboardSettings,
+        label: t('Dashboard'),
+        path: 'dashboard',
+        children: [
+          { path: 'edit', element: <AutomationDashboardSettingsEdit /> },
+          { path: '', element: <AutomationDashboardSettingsDetails /> },
+        ],
+      },
     ],
   });
 

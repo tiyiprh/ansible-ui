@@ -31,7 +31,7 @@ export function AutomationDashboardSettingsDetails() {
   const levels = loadMaturityLevels();
 
   const description = t(
-    'Configure settings for the Automation Dashboard. These settings apply to automation goals and adoption level names and descriptions.'
+    'Configure goals and adoption levels for your Automation Dashboard. These values appear on the Dashboard and Leaderboards tabs.'
   );
 
   const actions = useMemo<IPageAction<object>[]>(
@@ -52,8 +52,8 @@ export function AutomationDashboardSettingsDetails() {
   return (
     <PageLayout>
       <PageHeader
-        title={t('Automation Dashboard Settings')}
-        titleHelpTitle={t('Automation Dashboard Settings')}
+        title={t('Dashboard')}
+        titleHelpTitle={t('Dashboard')}
         titleHelp={description}
         titleHeadingLevel="h2"
         headerActions={<PageActions actions={actions} position="right" />}
@@ -73,7 +73,7 @@ export function AutomationDashboardSettingsDetails() {
                   fieldId="quarterly-run-target"
                   label={t('Quarterly run target')}
                   labelHelpTitle={t('Quarterly run target')}
-                  labelHelp={t('Enterprise-wide target for automation job runs this quarter.')}
+                  labelHelp={t('Target number of automation job runs for your organization this quarter.')}
                 >
                   <span style={readOnlyValueStyle}>
                     {hasConfiguredGoals() && goals ? goals.quarterlyRunTarget.toLocaleString() : '—'}
@@ -83,7 +83,7 @@ export function AutomationDashboardSettingsDetails() {
                   fieldId="monthly-savings-target"
                   label={t('Monthly savings target')}
                   labelHelpTitle={t('Monthly savings target')}
-                  labelHelp={t('Target monthly cost savings from automation.')}
+                  labelHelp={t('Target monthly cost savings from automation in USD.')}
                 >
                   <span style={readOnlyValueStyle}>
                     {hasConfiguredGoals() && goals

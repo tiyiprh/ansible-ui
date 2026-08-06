@@ -1,3 +1,35 @@
+## [Aug 6, 2026] Help popover copy — PatternFly content guidelines (new Jira required)
+
+**What:** Revise `Help` / `PageHeader` `titleHelp` / `PageFormGroup` `labelHelp` popover copy across Post-GA Automation Dashboard and related Settings to follow [PatternFly popover content guidelines](https://www.patternfly.org/components/popover/design-guidelines): 1–3 concise sentences, full sentences with punctuation, second person (“you/your”), no title repetition, no marketing tone.
+
+**Scope — update popover body text only (not labels, titles, or tooltips):**
+- **Page header:** `AutomationDashboardPostGA.tsx` — `titleHelp` (replace long marketing description with practical 2-sentence summary).
+- **Goals card:** `DashboardGoalsCard.tsx` — Quarterly automation goal, Cost savings this month section helps.
+- **Automation at a glance:** `DashboardAtAGlanceCard.tsx` — Automation adoption intro paragraph; Success streak (replace `Green = …` / `gray = …` fragments with full sentences).
+- **Dashboard tab KPIs and charts:** `AutomationDashboardPostGADashboardTab.tsx` — Successful jobs, Failed jobs, Hosts automated, Hours of automation, both chart cards (trim to 2 sentences each; second person where applicable).
+- **Leaderboards:** `AutomationDashboardLeaderboards.tsx` — Top 5 users, Human hours reclaimed panel helps.
+- **Cost calculation nested KPIs:** `DashboardMainTableCard.tsx` — four nested cost KPI help strings (convert phrase fragments to full sentences with periods).
+- **Cost toolbar checkbox:** `DashboardTableToolbarRow.tsx` — Include automation creation time help.
+- **Settings → Dashboard:** `AutomationDashboardSettingsDetails.tsx`, `AutomationDashboardSettingsEdit.tsx` — page `titleHelp`, Quarterly run target and Monthly savings target `labelHelp`.
+
+**Do not change:** Automation adoption **Levels** list inside the adoption popover (formatted reference content is valid per PF popover pattern). Leaderboard panels with already-compliant single-sentence helps (orgs, templates, projects) unless copy-edited for consistency in the same pass.
+
+**Why:** Existing help text predates PF content review — some strings used semicolon fragments, impersonal tone, or marketing language on the page header. Aligns with PF sentence-structure guidance (second person, active voice) before dev handoff.
+
+**Where:** Files listed above under Scope. Uses framework `Help` component (`Popover` with `headerContent={title}`).
+
+## [Aug 6, 2026] Cost calculation toolbar — NumberInput and 3-column form layout ([AAP-85053](https://issues.redhat.com/browse/AAP-85053))
+
+**What:** Cost calculation card subscription-cost toolbar uses a 3-column `Grid` (`md={4}`):
+- **Hourly rate** and **Monthly AAP cost**: PF [`NumberInput`](https://www.patternfly.org/components/number-input/) with `FormGroup` label above, +/- steppers, existing 600ms debounced save via `putRequest` to `metricsAPI` subscription_costs. Wrap each field in `Form` with `onSubmit` preventDefault (NumberInput uses a nested form).
+- **Include automation creation time**: inline **Checkbox** (label + Help on one line), not upstream Switch.
+- Alignment: `post-ga-cost-toolbar-grid` (`align-items: end`) + `post-ga-cost-checkbox-control` (`min-height: 36px`) so checkbox lines up with NumberInput control band.
+- Card body keeps reduced top padding (`paddingBlockStart: 0`) between Export CSV header and toolbar fields.
+
+**Why:** Match PF number-input pattern for cost fields and align the prototype toolbar layout for Post-GA demo review ([AAP-85053](https://issues.redhat.com/browse/AAP-85053)).
+
+**Where:** `frontend/awx/analytics/automation-dashboard/components/DashboardTableInputField.tsx` — NumberInput; `components/DashboardTableToolbarRow.tsx` — 3-column grid + checkbox; `post-ga/postGa.css` — alignment classes; `components/DashboardMainTableCard.tsx` — header Export + body padding (from PR #3435).
+
 ## [Aug 5, 2026] Post GA Automation Dashboard (AAP-85988)
 
 **What:**
@@ -6,24 +38,39 @@ Post-GA Automation Dashboard under Analytics — tabbed page with **Dashboard** 
 
 **Page shell**
 - Route: Analytics → Automation Dashboard (post-GA demo path `automation-dashboard/post-ga/dashboard`).
-- Use `PageLayout` + `PageHeader` (`titleHeadingLevel="h2"`, help popover only — no description line).
+- Use `PageLayout` + `PageHeader` with help popover only (`titleHelp` / `titleHelpTitle`) — **no** `description` prop, **no** Export PDF, **no** Sync data in header. Smaller header title sizing is deferred to a future platform-wide change.
 - Tabs: framework `PageRoutedTabs` with `insetSm`, child routes (`/dashboard`, `/leaderboards`), `<Outlet />` for tab content — same pattern as org/detail pages, not local `Tabs` state.
 - `DashboardToolbar` on Dashboard tab only (filters from existing `useAutomationDashboardToolbar`).
 
-**Dashboard tab — top summary row (side-by-side, plain PF `Card`, not `PageDashboardCard`)**
-- **Goals** card: Quarterly automation goal + Cost savings this month. Each section: section heading + help, metric value, PF `Progress` (outside measure), helper text. Mock data only.
-- **Automation at a glance** card: three top metrics (orgs active %, templates in use %, runs this month); **Automation adoption** (score 1–5, star icons, level name + description, help popover with maturity levels); **Success streak** (30-day heat strip, green = successful run day, gray = none, tooltip per day). Heat strip is custom markup — no PF heat-map component.
+**Dashboard tab — top summary row (custom PF `Card` layout, not `PageDashboardCard`)**
+
+Side-by-side row via `.post-ga-goals-row` in `post-ga/postGa.css` (CSS grid `1fr 1fr`, stacks at 768px), wired in `AutomationDashboardPostGADashboardTab.tsx` above the GA KPI grid.
+
+**Goals card** — follow `DashboardGoalsCard.tsx`:
+- PF `Card` + `CardHeader` (`Title h3 xl`) + `CardBody`.
+- Two sections, each: `DashboardSectionHeading` (h4 lg + framework `Help`) → `MetricValue` / `MetricLabel` (`DashboardMetricText.tsx`) → PF `Progress` (`measureLocation="outside"`).
+- Sections: **Quarterly automation goal**, **Cost savings this month**.
+- **Targets** (denominator / goal amounts): read from Settings via `dashboardSettingsUtils.ts`.
+- **Current progress values** (numerator): wired to metrics/dashboard API in product.
+- **Empty state:** em-dash placeholders + **Configure goals** primary button → Settings Edit (when targets unset).
+- **Quarterly countdown:** helper under progress bar (`{{days}} days left in quarter`).
+
+**Automation at a glance** — follow `DashboardAtAGlanceCard.tsx`:
+- Same Card shell pattern as Goals.
+- **Top row:** 3 equal columns (`GridItem span={4}`), centered metrics with vertical dividers (`.post-ga-at-a-glance-metric-col`): orgs active %, templates in use %, runs this month.
+- **Automation adoption:** `DashboardSectionHeading` + score + star icons + level name/description; levels loaded from Settings (`maturityUtils.ts`); dynamic “out of N”.
+- **Success streak:** `DashboardSectionHeading` + 30-day heat strip — custom `div` cells (`.streak-heat-cell`, success/empty classes), PF `Tooltip` per day; **no** PF heat-map component.
 
 **Dashboard tab — GA dashboard body (reuse existing components)**
 - Four KPI value cards: Successful jobs, Failed jobs, Hosts automated, Hours of automation (`DashboardValueCard` / `PageDashboardCard`).
 - Two chart cards: hosts over time, job runs over time (`DashboardChartCard`).
-- **Cost calculation** card (`DashboardMainTableCard`): toolbar row for subscription cost inputs; **four nested KPI cards** with **section-level titles** (smaller than card title): Cost of manual automation, Cost of automated execution, Total savings/cost avoided, Total hours saved/avoided; template-level table below. Nested KPI titles use section heading level, not full card-title level.
+- **Cost calculation** card (`DashboardMainTableCard`): four nested KPI cards with **section-level titles**; template-level table below. Nested KPI titles use section heading level, not full card-title level. Subscription-cost toolbar — see Aug 6 entry ([AAP-85053](https://issues.redhat.com/browse/AAP-85053)).
 - Remove Top 5 projects / Top 5 users from Dashboard tab (moved to Leaderboards).
 
 **Leaderboards tab**
-- Ranking panels: Top organizations, templates, projects, users, human hours saved (mock data).
-- **Layout: two table cards per row** — PF `Grid` + `GridItem md={6}` (matches source prototype); stack to one column below `md`.
-- **Toolbar filters:** PF `Toolbar` + framework `PageToolbarFilters` with two pinned `SingleSelect` filters — labels **Period** and **Organization** beside `PageSingleSelect` (rename from "View"); same pattern as Dashboard tab toolbar.
+- Ranking panels: Top organizations, templates, projects, users, human hours saved (metrics API in product).
+- **Layout: two table cards per row** — PF `Grid` + `GridItem md={6}`; stack to one column below `md`.
+- **Toolbar filters:** PF `Toolbar` + framework `PageToolbarFilters` with two pinned `SingleSelect` filters — labels **Period** and **Organization** beside `PageSingleSelect`; same pattern as Dashboard tab toolbar.
 - **Manage view** using framework `useManageItems` + `ReorderItems` (Overview pattern).
 - Each panel: PF `Card` + compact PF `Table` (or `EmptyState` when no data); ~320px card height.
 
@@ -46,6 +93,7 @@ Post-GA Automation Dashboard under Analytics — tabbed page with **Dashboard** 
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx` — At a glance + adoption + streak
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardMetricText.tsx` — shared metric value/label typography
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardSectionHeading.tsx` — shared section heading
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css` — goals row, at-a-glance, cost toolbar alignment
 - `frontend/awx/analytics/automation-dashboard/post-ga/AutomationDashboardLeaderboards.tsx` — Leaderboards content
 - `frontend/awx/analytics/automation-dashboard/post-ga/useManagedLeaderboardPanels.tsx` — Manage view
 - `frontend/awx/analytics/automation-dashboard/components/DashboardValueCard.tsx` — `titleVariant="section"` for nested cost KPIs
@@ -79,62 +127,54 @@ Disabled **Create new report** tooltip when on default filters: **Change filters
 
 **Where (enhancement):** `framework/PageActions/PageAction.tsx`, `PageActionDropdown.tsx`, `useAutomationDashboardToolbarActions.tsx`.
 
-**Prototype-only — Cost calculation toolbar layout:**
+**Prototype-only — divergences from `origin/devel` (Report actions):**
 
-- Switch wrapped in `FormGroup` (label above, toggle below) to match number field layout — aligns toggle with inputs, not inline switch label.
-- Reduced top padding on first `CardBody` in Cost calculation card (tighter gap between title + Export and toolbar fields).
+| Topic | Upstream (`origin/devel`) | This prototype |
+|-------|---------------------------|----------------|
+| Report actions dropdown trigger | `PlusCircleIcon` on dropdown | **No icon** on **Report actions** trigger when a saved report is selected; `PlusCircleIcon` on standalone **Create new report** only |
 
-**Where:** `components/DashboardTableToolbarRow.tsx`, `components/DashboardMainTableCard.tsx`.
+Cost calculation toolbar divergences (NumberInput, Checkbox, layout, Export CSV) — see Aug 6 entry ([AAP-85053](https://issues.redhat.com/browse/AAP-85053)).
 
-**Why:** Align prototype with in-flight upstream UX fixes (#3439, #3435 already on branch); clarify Create vs Update at menu open; polish Cost calculation toolbar for Post GA demo.
-
-**Note:** PR #3435 (Export CSV in card header) was already cherry-picked on this branch — no additional #3435 work in this entry.
+**Why:** Align prototype with in-flight upstream UX fixes (#3439); clarify Create vs Update at menu open.
 
 ## [Aug 5, 2026] ANSTRAT-1976 gamification parity — Settings, goals empty state, leaderboards
 
 **What:**
 
-**Settings → Automation Dashboard** (Gateway pattern):
-- Split into read-only **Details** (`PageDetails` + pinned Edit) and **Edit** route (`PlatformPageForm` + `PageFormSection`).
-- Section **Automation goals**: quarterly run target (number), monthly savings target (number, `$` display — no currency picker).
-- Section **Adoption levels**: name + description rows with add/delete; Reset to defaults on Edit.
-- Persist goals and adoption levels in localStorage via shared utils.
+**Settings → Automation Analytics → Dashboard** (Gateway Settings pattern):
+- Nav path: **Settings → Automation Analytics → Dashboard** (`/settings/automation-analytics/dashboard`, Edit at `/edit`).
+- **Nav label and page title:** **Dashboard** (not "Dashboard Settings" or "Automation Dashboard Settings") — follows grouped Settings pattern (Automation Execution → System / Job / Logging); top-level "[Name] Settings" pattern applies only to items like Subscription Settings.
+- Split into read-only **Details** and **Edit** routes — follow `GatewaySettingsDetails.tsx` / `GatewaySettingsEdit.tsx`.
+- **Details:** `PageFormGrid` + read-only `PageFormGroup` (not `PageDetails`); `PageFormSection` for **Automation goals** and **Adoption levels**; pinned Edit action in header.
+- **Automation goals** (Details): read-only values in 3-column form rhythm (`PageFormGrid`).
+- **Adoption levels** (Details): each level row uses `post-ga-adoption-level-row` (name ~1 col, description ~2 cols) with `FormGroup` label-above read-only text — same structure as Edit minus inputs and add/delete buttons.
+- **Edit:** `PlatformPageForm` + `PageFormSection`; quarterly run target + monthly savings target (`PageFormTextInput`, `$` display — no currency picker); adoption level name + description rows with add/delete; **Reset to defaults** secondary action.
+- Persist goals and adoption levels via settings API in product (prototype uses localStorage via shared utils).
 
 **Dashboard — Goals card:**
-- Reads saved goal **targets** from Settings; mock progress values unchanged.
-- **Empty state** when goals not configured: framework `EmptyStateCustom` + **Configure goals** button → Settings Edit.
-- **Quarterly countdown**: helper text "{{days}} days left in quarter" under progress bar.
-- **Prototype control** (demo only): yellow dashed **Prototype** chrome in page header top-right — **Goals: Configured | Not configured** (default Configured); `sessionStorage` override for demo without clearing Settings.
+- Reads saved goal **targets** from Settings; current progress from metrics/dashboard API in product.
+- **Empty state** when goals not configured: em-dash placeholders on metrics + **Configure goals** button → Settings Edit.
+- **Quarterly countdown:** helper text "{{days}} days left in quarter" under progress bar.
+- **Prototype control** (demo only): yellow dashed **Prototype** chrome in page header top-right — **Goals: Empty state | Populated** (default **Empty state**); `sessionStorage` override for demo without clearing Settings.
 
 **Dashboard — Automation at a glance:**
-- **Configure** link (cog) on Automation adoption section → Settings.
-- Fix **out of N** to use saved adoption level count (not hardcoded 5).
+- **Configure** link on Automation adoption — **out of scope** for this prototype.
+- **Out of N** uses saved adoption level count from Settings (not hardcoded 5).
 - Remove double divider under top metrics row; PF token spacing cleanup.
 
 **Leaderboards:**
-- Add **This quarter** period filter (mock scales row values by period).
-- Org panel help text: ranked by **% of goal met**; % column uses saved quarterly run target.
+- Add **This quarter** period filter.
+- Org panel help text: ranked by **% of goal met**; % column uses saved quarterly run target from Settings.
 
 **Where:**
-- `platform/settings/AutomationDashboardSettingsDetails.tsx`, `AutomationDashboardSettingsEdit.tsx` — new Settings Details + Edit
-- `platform/main/usePlatformNavigation.tsx` — child routes `''` + `edit`; removed inline `AutomationDashboardSettings.tsx`
+- `platform/settings/AutomationDashboardSettingsDetails.tsx`, `AutomationDashboardSettingsEdit.tsx` — page title **Dashboard** on Details + Edit; Settings Details + Edit layout
+- `platform/main/usePlatformNavigation.tsx` — nested Settings → Automation Analytics → Dashboard routes
 - `frontend/awx/analytics/automation-dashboard/post-ga/dashboardSettingsUtils.ts` — goals storage, preview mode, countdown helper
 - `frontend/awx/analytics/automation-dashboard/post-ga/maturityUtils.ts` — `saveMaturityLevels()`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardGoalsCard.tsx` — empty/populated states, countdown
 - `frontend/awx/analytics/automation-dashboard/post-ga/GoalsPreviewControl.tsx`, `platform/common/PrototypeDemoControl.tsx` — demo header control
 - `frontend/awx/analytics/automation-dashboard/AutomationDashboardPostGA.tsx` — headerActions preview control
-- `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx` — Configure link, out-of-N, divider/spacing
+- `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx` — out-of-N, divider/spacing
 - `frontend/awx/analytics/automation-dashboard/post-ga/AutomationDashboardLeaderboards.tsx` — This quarter filter, goal target wiring, help text
-- Deleted `AutomationMaturityCard.tsx` (unused)
 
-**Why:** Align Post GA gamification prototype with ANSTRAT-1976 kickoff decisions: configurable goals + adoption levels in Settings, first-time goals setup empty state, leaderboards period filter, and AAP UI patterns for settings and empty states.
-
-## [Aug 5, 2026] Automation Dashboard Settings — Details layout parity with Edit
-
-**What:** Fix read-only **Automation Dashboard Settings** Details page so it mirrors the Edit form layout.
-- **Automation goals:** `PageDetails` with `numberOfColumns="multiple"` (3-column form rhythm); remove `disablePadding` so standard 24px padding returns.
-- **Adoption levels:** each level row uses `post-ga-adoption-level-row` (name ~1 col, description ~2 cols) with `FormGroup` label-above read-only text — same structure as Edit minus inputs and add/delete buttons.
-
-**Why:** Details had lost padding and used a 50/50 two-column `PageDetails` grid for adoption levels, which did not match the Edit page's 1+2 row layout.
-
-**Where:** `platform/settings/AutomationDashboardSettingsDetails.tsx` — layout only
+**Why:** Align Post GA gamification with ANSTRAT-1976 kickoff decisions: configurable goals + adoption levels in Settings, first-time goals setup empty state, leaderboards period filter, and AAP UI patterns for settings and empty states.

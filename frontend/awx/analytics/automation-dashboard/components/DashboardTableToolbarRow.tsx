@@ -93,7 +93,7 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
   };
 
   return (
-    <Grid hasGutter md={4}>
+    <Grid hasGutter md={4} className="post-ga-cost-toolbar-grid">
       <GridItem>
         <DashboardTableInputField
           label={t('Hourly rate for manually running the job ({{currency}})', {
@@ -130,28 +130,30 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
           error={errors?.monthly_subscription_cost}
         />
       </GridItem>
-      <GridItem style={{ display: 'flex', alignItems: 'flex-end' }}>
-        <Checkbox
-          id={CHECKBOX_ID}
-          data-testid={CHECKBOX_ID}
-          aria-label={t(AUTOMATION_CREATION_TIME_LABEL)}
-          label={
-            <>
-              {t(AUTOMATION_CREATION_TIME_LABEL)}
-              <Help
-                title={t(AUTOMATION_CREATION_TIME_LABEL)}
-                help={t(
-                  'When enabled, include the time spent building each job template when calculating manual cost, automated cost, and savings.'
-                )}
-              />
-            </>
-          }
-          isChecked={costState?.include_template_creation_time_in_costs === true}
-          onChange={(_e, value) => {
-            void toolbarChangeHandler(value, 'include_template_creation_time_in_costs');
-          }}
-          isDisabled={controlsDisabled}
-        />
+      <GridItem>
+        <div className="post-ga-cost-checkbox-control">
+          <Checkbox
+            id={CHECKBOX_ID}
+            data-testid={CHECKBOX_ID}
+            aria-label={t(AUTOMATION_CREATION_TIME_LABEL)}
+            label={
+              <>
+                {t(AUTOMATION_CREATION_TIME_LABEL)}
+                <Help
+                  title={t(AUTOMATION_CREATION_TIME_LABEL)}
+                  help={t(
+                    'When enabled, include the time spent building each job template in manual cost, automated cost, and savings calculations.'
+                  )}
+                />
+              </>
+            }
+            isChecked={costState?.include_template_creation_time_in_costs === true}
+            onChange={(_e, value) => {
+              void toolbarChangeHandler(value, 'include_template_creation_time_in_costs');
+            }}
+            isDisabled={controlsDisabled}
+          />
+        </div>
       </GridItem>
     </Grid>
   );

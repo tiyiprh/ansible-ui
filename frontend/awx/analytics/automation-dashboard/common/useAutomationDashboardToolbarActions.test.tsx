@@ -11,6 +11,9 @@ import {
 import type { IFilterState, IToolbarFilter } from '@ansible/ansible-ui-framework';
 import { AutomationDashboardDateRangeFilterPresets } from '../constants';
 import type { IDashboardFilterSet, IJobTemplate } from '../types';
+import {
+  AUTOMATION_DASHBOARD_DEFAULT_FILTERS,
+} from '../utils/defaultFilterState';
 import { useAutomationDashboardToolbarActions } from './useAutomationDashboardToolbarActions';
 
 type Dropdown = IPageActionDropdown<IJobTemplate>;
@@ -42,9 +45,7 @@ vi.mock('../../../common/useAwxActiveUser', () => ({
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const defaultFilterState: IFilterState = {
-  period: [AutomationDashboardDateRangeFilterPresets.last_7_days],
-};
+const defaultFilterState: IFilterState = AUTOMATION_DASHBOARD_DEFAULT_FILTERS;
 
 const nonDefaultFilterState: IFilterState = {
   period: [AutomationDashboardDateRangeFilterPresets.last_30_days],

@@ -1,8 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { IFilterState, IToolbarFilter } from '../../../../../framework';
+import { IToolbarFilter } from '../../../../../framework';
 import { metricsAPI } from '../../../common/api/metrics-utils';
 import { AutomationDashboardDateRangeFilterPresets } from '../constants';
 import { IAutomationDashboardView, IJobTemplate, ReportType } from '../types';
+import {
+  AUTOMATION_DASHBOARD_DEFAULT_FILTERS,
+  isDefaultAutomationDashboardFilterState,
+} from '../utils/defaultFilterState';
 import { useGetReportDetails } from './useGetReportDetails';
 import { useSubscriptionCostState } from './useSubscriptionCostState';
 import { useExportCsv } from './useExportCsv';
@@ -14,37 +18,13 @@ import {
 // Resolved once at module load — the user's time zone does not change during a session.
 export const QUERY_PARAMS = { tz: Intl.DateTimeFormat().resolvedOptions().timeZone };
 
-const DEFAULT_END_DATE = new Date(Date.now());
-const DEFAULT_START_DATE = new Date(DEFAULT_END_DATE.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-const DEFAULT_FILTERS: Record<string, string[]> = {
-  period: [
-    AutomationDashboardDateRangeFilterPresets.last_7_days,
-    DEFAULT_START_DATE.toISOString().split('T')[0],
-    DEFAULT_END_DATE.toISOString().split('T')[0],
-  ],
-};
-
-/** Returns true when filterState is empty or equals the default (period = last 7 days only). */
-function isDefaultFilterState(filterState: IFilterState | undefined): boolean {
-  if (!filterState) return true;
-
-  // Remove empty entries from filterState
-  const activeFilterState = Object.fromEntries(
-    Object.entries(filterState).filter(([, v]) => v && v.length > 0)
-  );
-
-  // Compare with DEFAULT_FILTERS
-  return JSON.stringify(activeFilterState) === JSON.stringify(DEFAULT_FILTERS);
-}
-
 export function useAutomationDashboardView(options: {
   toolbarFilters: IToolbarFilter[];
 }): IAutomationDashboardView {
   const { toolbarFilters } = options;
   const mainTableViewBase = useAutomationDashboardBaseView<IJobTemplate>({
     url: metricsAPI`/dashboard_reports/report/`,
-    defaultFilters: DEFAULT_FILTERS,
+    defaultFilters: AUTOMATION_DASHBOARD_DEFAULT_FILTERS,
     toolbarFilters,
   });
 
@@ -100,7 +80,10 @@ export function useAutomationDashboardView(options: {
   );
 
   // Compute whether filter state is default
-  const isFilterStateDefaultValue = useMemo(() => isDefaultFilterState(filterState), [filterState]);
+  const isFilterStateDefaultValue = useMemo(
+    () => isDefaultAutomationDashboardFilterState(filterState),
+    [filterState]
+  );
 
   return useMemo(
     () => ({

@@ -1,11 +1,12 @@
 import {
+  Form,
   FormGroup,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  TextInput,
+  NumberInput,
 } from '@patternfly/react-core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { DashboardTableInputFieldProps } from '../types';
 import { Help } from '@ansible/ansible-ui-framework';
 import { useTranslation } from 'react-i18next';
@@ -72,35 +73,70 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
     setValueDebounced(numberValue);
   };
 
+  const numberInputValue: number | '' =
+    value === '' || value === undefined ? '' : Number(value);
+
+  const handlePlus = (_event: MouseEvent, _name?: string) => {
+    if (readOnly === true) {
+      return;
+    }
+    const current = Number(value);
+    if (Number.isNaN(current)) {
+      return;
+    }
+    const next = max !== undefined ? Math.min(current + 1, max) : current + 1;
+    onChangeHandler(String(next));
+  };
+
+  const handleMinus = (_event: MouseEvent, _name?: string) => {
+    if (readOnly === true) {
+      return;
+    }
+    const current = Number(value);
+    if (Number.isNaN(current)) {
+      return;
+    }
+    const next = min !== undefined ? Math.max(current - 1, min) : current - 1;
+    onChangeHandler(String(next));
+  };
+
   return (
-    <FormGroup
-      fieldId={id}
-      label={label}
-      labelHelp={labelHelp ? <Help title={label} help={labelHelp} /> : undefined}
-      style={{ gridColumn: fullWidth ? 'span 24' : undefined }}
-      aria-invalid={error ? 'true' : 'false'}
-    >
-      <TextInput
-        style={{ textAlign: 'right' }}
-        id={id}
-        name={id}
-        onChange={(_event, value: string) => onChangeHandler(value)}
-        value={value ?? ''}
-        aria-describedby={id ? `${id}-form-group` : undefined}
-        type={'number'}
-        min={min}
-        max={max}
-        autoComplete={'off'}
-        data-testid={id}
-        isDisabled={readOnly === true}
-      />
-      {(error || errorMsg) && (
-        <FormHelperText>
-          <HelperText>
-            <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
-          </HelperText>
-        </FormHelperText>
-      )}
-    </FormGroup>
+    <Form onSubmit={(e) => e.preventDefault()}>
+      <FormGroup
+        fieldId={id}
+        label={label}
+        labelHelp={labelHelp ? <Help title={label} help={labelHelp} /> : undefined}
+        style={{ gridColumn: fullWidth ? 'span 24' : undefined }}
+        aria-invalid={error ? 'true' : 'false'}
+      >
+        <NumberInput
+          value={numberInputValue}
+          min={min}
+          max={max}
+          isDisabled={readOnly === true}
+          validated={error || errorMsg ? 'error' : 'default'}
+          onChange={(event) => {
+            onChangeHandler((event.target as HTMLInputElement).value);
+          }}
+          onPlus={handlePlus}
+          onMinus={handleMinus}
+          inputName={id}
+          inputAriaLabel={label}
+          inputProps={{
+            id,
+            'data-testid': id,
+            autoComplete: 'off',
+            'aria-describedby': id ? `${id}-form-group` : undefined,
+          }}
+        />
+        {(error || errorMsg) && (
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        )}
+      </FormGroup>
+    </Form>
   );
 }

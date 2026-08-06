@@ -146,10 +146,10 @@ export function AutomationDashboardSettingsEdit() {
   return (
     <PageLayout>
       <PageHeader
-        title={t('Automation Dashboard Settings')}
-        titleHelpTitle={t('Automation Dashboard Settings')}
+        title={t('Dashboard')}
+        titleHelpTitle={t('Dashboard')}
         titleHelp={t(
-          'Configure automation goals and adoption level names and descriptions for the Automation Dashboard.'
+          'Configure automation goals and adoption levels for your Automation Dashboard.'
         )}
         titleHeadingLevel="h2"
       />
@@ -178,7 +178,7 @@ export function AutomationDashboardSettingsEdit() {
             name="quarterlyRunTarget"
             type="number"
             label={t('Quarterly run target')}
-            labelHelp={t('Enterprise-wide target for automation job runs this quarter.')}
+            labelHelp={t('Target number of automation job runs for your organization this quarter.')}
             placeholder={t('Enter target')}
             isRequired
             min={1}
@@ -187,7 +187,7 @@ export function AutomationDashboardSettingsEdit() {
             name="monthlySavingsTarget"
             type="number"
             label={t('Monthly savings target')}
-            labelHelp={t('Target monthly cost savings from automation (USD).')}
+            labelHelp={t('Target monthly cost savings from automation in USD.')}
             placeholder={t('Enter target')}
             isRequired
             min={1}

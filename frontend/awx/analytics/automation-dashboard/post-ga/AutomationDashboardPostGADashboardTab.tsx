@@ -97,7 +97,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="successful-jobs-card"
                     title={t('Successful jobs')}
                     help={t(
-                      'Number of job runs that completed without error in the selected period. Use the ratio between successful and failed jobs to track automation health and reliability over time.'
+                      'Number of job runs that completed without error in the selected period. Compare successful and failed jobs to track automation health over time.'
                     )}
                     linkText={t('See all successful jobs')}
                     to={getPageUrl(AwxRoute.Jobs) + '?status=successful'}
@@ -110,7 +110,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="failed-jobs-card"
                     title={t('Failed jobs')}
                     help={t(
-                      'Number of job runs that ended in failure in the selected period. Review failed jobs to fix playbooks, credentials, or inventory issues and improve success rates.'
+                      'Number of job runs that failed in the selected period. Review failed jobs to fix playbooks, credentials, or inventory issues.'
                     )}
                     linkText={t('See all failed jobs')}
                     to={getPageUrl(AwxRoute.Jobs) + '?status=failed'}
@@ -123,7 +123,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="unique-hosts-card"
                     title={t('Hosts automated')}
                     help={t(
-                      'Number of hosts that executed at least one automation job in the selected period. Indicates how much of your inventory is actively automated and can help with license or capacity planning.'
+                      'Number of hosts that ran at least one automation job in the selected period. Shows how much of your inventory is actively automated.'
                     )}
                     value={details?.total_number_of_unique_hosts ?? noDataString}
                     error={view.detailsError}
@@ -134,7 +134,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="automation-hours-card"
                     title={t('Hours of automation')}
                     help={t(
-                      'Sum of all job runtimes in the selected period. Reflects total automation workload and can inform capacity planning and resource allocation.'
+                      'Total job runtime in the selected period. Use this to understand automation workload and plan capacity.'
                     )}
                     value={details?.total_hours_of_automation ?? noDataString}
                     valueSuffix={details?.total_hours_of_automation ? 'h' : undefined}
@@ -151,7 +151,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="host-chart-card"
                     title={t('Number of hosts jobs are running on')}
                     help={t(
-                      'Number of hosts that ran at least one job in the selected period. Complements run count by showing how broadly automation is applied across your inventory.'
+                      'Number of hosts that ran at least one job in the selected period. Shows how broadly automation is applied across your inventory.'
                     )}
                     summaryValue={details?.total_number_of_host_job_runs ?? 0}
                     data={details?.host_chart ?? { kind: 'day', items: [] }}
@@ -164,7 +164,7 @@ export function AutomationDashboardPostGADashboardTab() {
                     id="job-chart-card"
                     title={t('Number of times jobs were run')}
                     help={t(
-                      'Total number of job executions in the selected period, regardless of success or failure. Use this to understand automation volume, trends, and adoption over time.'
+                      'Total job executions in the selected period, including successful and failed runs. Use this to track automation volume and trends.'
                     )}
                     variant="barChart"
                     summaryValue={details?.total_number_of_job_runs ?? 0}

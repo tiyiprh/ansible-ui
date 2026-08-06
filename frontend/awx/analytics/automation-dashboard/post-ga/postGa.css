@@ -87,3 +87,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.post-ga-cost-toolbar-grid {
+  align-items: end;
+}
+
+.post-ga-cost-checkbox-control {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+}
