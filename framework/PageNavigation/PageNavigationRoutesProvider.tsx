@@ -30,10 +30,10 @@ export function PageNavigationRoutesProvider(props: { children: ReactNode }) {
   );
 }
 
-function createNavigateToRoutes(base: string, navigation: PageNavigationItem[]) {
+export function createNavigateToRoutes(base: string, navigation: PageNavigationItem[]) {
   const routes: { [key: string]: string } = {};
   navigation.forEach((item) => {
-    const itemPath = (base + '/' + item.path).replace('//', '/');
+    const itemPath = (base + '/' + item.path).replace(/\/+/g, '/');
     if ('id' in item && typeof item.id === 'string') {
       routes[item.id] = itemPath;
     }

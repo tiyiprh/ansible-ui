@@ -23,23 +23,23 @@ export function PrototypeBanner() {
         backgroundColor: '#f0ab00',
         color: '#1b1d21',
         borderRadius: '0 0 8px 8px',
-        padding: '10px 20px',
+        padding: '4px 12px',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 16,
-        fontSize: 13,
+        fontSize: 12,
         lineHeight: 1.5,
       }}
     >
       <span>
-        <strong>UX Prototype</strong> —{' '}
+        <strong>UX Prototype - Automation Dashboard Gamification</strong> —{' '}
         <a
           href={JIRA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#1b1d21', fontWeight: 600 }}
+          style={{ color: '#1b1d21', fontWeight: 500 }}
         >
           AAP-85988
         </a>

@@ -37,7 +37,7 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 **Prototype-only:** No
 
 **What:**
-- Post-GA Automation Dashboard under Analytics — tabbed page with **Dashboard** (default) and **Highlights** (tab label; route path may stay `/leaderboards`, `dataCy`: `post-ga-highlights-tab`).
+- Post-GA Automation Dashboard under Analytics — tabbed page with **Dashboard** (default) and **Highlights** (tab label; route path `/highlights`, `dataCy`: `post-ga-highlights-tab`).
 - **Route:** Analytics → Automation Dashboard (post-GA path, e.g. `automation-dashboard/post-ga/dashboard`).
 - `PageLayout` + `PageHeader` with help popover only (`titleHelp` / `titleHelpTitle`) — **no** `description` prop, **no** Export PDF, **no** Sync data in header.
 - Tabs: framework `PageRoutedTabs` with `insetSm`, child routes (`/dashboard`, `/leaderboards`), `<Outlet />` for tab content — same pattern as org/detail pages, not local `Tabs` state.

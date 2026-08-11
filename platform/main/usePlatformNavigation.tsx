@@ -3,6 +3,7 @@ import {
   findNavigationItemById,
   removeNavigationItemById,
 } from '@ansible/ansible-ui-framework';
+import { NestedRouteOutlet } from '@ansible/ansible-ui-framework/PageApp/PageContentOutlet';
 import { PageSettingsDetails } from '@ansible/ansible-ui-framework/PageSettings/PageSettingsDetails';
 import { PageSettingsForm } from '@ansible/ansible-ui-framework/PageSettings/PageSettingsForm';
 import { AwxPolicySettingsDetailsPage } from '@ansible/awx-ui/administration/settings/AwxPolicySettingsDetails';
@@ -291,10 +292,13 @@ function buildDemoNavigation(allItems: PageNavigationItem[]): PageNavigationItem
           return {
             ...child,
             hidden: false,
-            children: child.children?.map((grandchild) => ({
-              ...grandchild,
-              hidden: grandchild.id !== (PlatformRoute.AutomationDashboardSettings as string),
-            })),
+            children:
+              'children' in child && Array.isArray(child.children)
+                ? child.children.map((grandchild: PageNavigationItem) => ({
+                    ...grandchild,
+                    hidden: grandchild.id !== (PlatformRoute.AutomationDashboardSettings as string),
+                  }))
+                : child.children,
           };
         }
         return { ...child, hidden: true };
@@ -575,11 +579,13 @@ function usePlatformSettingsNavigation(): PageNavigationItem {
     id: PlatformRoute.AutomationAnalyticsSettings,
     label: t('Automation Analytics'),
     path: 'automation-analytics',
+    element: <NestedRouteOutlet />,
     children: [
       {
         id: PlatformRoute.AutomationDashboardSettings,
         label: t('Dashboard'),
         path: 'dashboard',
+        element: <NestedRouteOutlet />,
         children: [
           { path: 'edit', element: <AutomationDashboardSettingsEdit /> },
           { path: '', element: <AutomationDashboardSettingsDetails /> },
@@ -707,6 +713,7 @@ function usePlatformSettingsNavigation(): PageNavigationItem {
     id: AwxRoute.Settings,
     label: t('Settings'),
     path: 'settings',
+    element: <NestedRouteOutlet />,
     children: settingsNav,
   };
 }

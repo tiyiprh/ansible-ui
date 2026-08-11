@@ -20,12 +20,14 @@ export const QUERY_PARAMS = { tz: Intl.DateTimeFormat().resolvedOptions().timeZo
 
 export function useAutomationDashboardView(options: {
   toolbarFilters: IToolbarFilter[];
+  disableQueryString?: boolean;
 }): IAutomationDashboardView {
-  const { toolbarFilters } = options;
+  const { toolbarFilters, disableQueryString } = options;
   const mainTableViewBase = useAutomationDashboardBaseView<IJobTemplate>({
     url: metricsAPI`/dashboard_reports/report/`,
     defaultFilters: AUTOMATION_DASHBOARD_DEFAULT_FILTERS,
     toolbarFilters,
+    disableQueryString,
   });
 
   const { filterState, setFilterState } = mainTableViewBase;

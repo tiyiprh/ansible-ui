@@ -13,7 +13,37 @@ import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { useState, type CSSProperties } from 'react';
 import { useMatch } from 'react-router-dom';
 import { usePageNavBarClick, usePageNavSideBar } from './PageNavSidebar';
+import { useBreakpoint } from '../components/useBreakPoint';
+import { useGetPageUrl } from './useGetPageUrl';
 import { PageNavigationItem } from './PageNavigationItem';
+
+function buildNavPath(baseRoute: string, path: string): string {
+  let navPath = `${baseRoute}/${path}`.replace(/\/+/g, '/');
+  if (!navPath.startsWith('/')) {
+    navPath = `/${navPath}`;
+  }
+  return navPath;
+}
+
+/** When a route has a default tab child (e.g. post-ga/dashboard), link to that tab directly. */
+function getDefaultTabDestination(
+  item: PageNavigationItem,
+  getPageUrl: (id: string) => string
+): string | undefined {
+  if (!('children' in item) || !item.children?.length) {
+    return undefined;
+  }
+  const defaultTab = item.children.find(
+    (child) => 'id' in child && typeof child.id === 'string' && child.path === 'dashboard'
+  );
+  if (defaultTab && 'id' in defaultTab && typeof defaultTab.id === 'string') {
+    const tabUrl = getPageUrl(defaultTab.id);
+    if (tabUrl) {
+      return tabUrl;
+    }
+  }
+  return undefined;
+}
 
 /** Renders a sidebar navigation menu from an arroy of navigation items. */
 export function PageNavigation(props: {
@@ -61,6 +91,10 @@ function PageNavigationItems(props: { items: PageNavigationItem[]; baseRoute: st
 
 function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRoute: string }) {
   const { item } = props;
+  const isXl = useBreakpoint('xl');
+  const navBar = usePageNavSideBar();
+  const onClickNavItem = usePageNavBarClick();
+  const getPageUrl = useGetPageUrl();
   const [isExpanded, setIsExpanded] = useState(
     () =>
       localStorage.getItem('default-nav-expanded') === 'true' ||
@@ -84,11 +118,13 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
     id = props.item.label?.split(' ').join('-').toLowerCase();
   }
 
-  const onClickNavItem = usePageNavBarClick();
-  let route = props.baseRoute + '/' + item.path;
-  route = route.replace('//', '/');
+  const navPath = buildNavPath(props.baseRoute, item.path);
+  const defaultTabDestination = getDefaultTabDestination(item, getPageUrl);
+  const destination =
+    defaultTabDestination ??
+    ('id' in item && typeof item.id === 'string' && getPageUrl(item.id) ? getPageUrl(item.id) : navPath);
 
-  const isActive = !!useMatch(route + '/*');
+  const isActive = !!useMatch(destination + '/*');
 
   if (item.path === '/' && 'children' in item) {
     return <PageNavigationItems items={item.children} baseRoute={''} />;
@@ -98,14 +134,43 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
   const subtitleStyle: CSSProperties = { fontSize: 'small', opacity: 0.5, textAlign: 'left' };
 
   if (!hasChildNavItems && 'label' in item) {
+    if (item.href) {
+      return (
+        <NavItem
+          id={id}
+          href={item.href}
+          isActive={isActive}
+          onClick={() => window.open(item.href, '_blank')}
+          target="_blank"
+          data-cy={id}
+          data-testid={id}
+          style={{ display: 'flex', alignItems: 'stretch', flexDirection: 'column' }}
+        >
+          <Flex flexWrap={{ default: 'nowrap' }}>
+            <FlexItem grow={{ default: 'grow' }}>{item.label}</FlexItem>
+            <FlexItem>
+              <span className="pf-v6-c-nav__toggle">
+                <span className="pf-v6-c-nav__toggle-icon">
+                  <ExternalLinkAltIcon />
+                </span>
+              </span>
+            </FlexItem>
+          </Flex>
+          {item.subtitle && <div style={subtitleStyle}>{item.subtitle}</div>}
+        </NavItem>
+      );
+    }
+
     return (
       <NavItem
         id={id}
-        href={item.href || route}
+        href={destination}
         isActive={isActive}
-        // className={isActive ? 'bg-lighten' : undefined}
-        onClick={() => (item.href ? window.open(item.href, '_blank') : onClickNavItem(route))}
-        target={item.href ? '_blank' : ''}
+        onClick={(event) => {
+          event.preventDefault();
+          onClickNavItem(destination);
+          if (!isXl) navBar.setState({ isOpen: !navBar.isOpen });
+        }}
         data-cy={id}
         data-testid={id}
         style={{ display: 'flex', alignItems: 'stretch', flexDirection: 'column' }}
@@ -119,15 +184,6 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
               </Label>
             </FlexItem>
           )}
-          {'href' in item && item.href && (
-            <FlexItem>
-              <span className="pf-v6-c-nav__toggle">
-                <span className="pf-v6-c-nav__toggle-icon">
-                  <ExternalLinkAltIcon />
-                </span>
-              </span>
-            </FlexItem>
-          )}
         </Flex>
         {item.subtitle && <div style={subtitleStyle}>{item.subtitle}</div>}
       </NavItem>
@@ -139,7 +195,7 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
   }
 
   if (!item.label) {
-    return <PageNavigationItems items={item.children} baseRoute={route} />;
+    return <PageNavigationItems items={item.children} baseRoute={navPath} />;
   }
 
   return (
@@ -157,7 +213,7 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
       isExpanded={isExpanded}
       onExpand={(_e, expanded: boolean) => setExpanded(expanded)}
     >
-      <PageNavigationItems items={item.children} baseRoute={route} />
+      <PageNavigationItems items={item.children} baseRoute={navPath} />
     </NavExpandable>
   );
 }

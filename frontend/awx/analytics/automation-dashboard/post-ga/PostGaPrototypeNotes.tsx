@@ -1,80 +1,105 @@
 import { PrototypeNote } from '../../../../../platform/common/PrototypeNote';
 
-export function GaDashboardToolbarPrototypeNote() {
+export function GaDashboardToolbarPrototypeNote({
+  defaultOpen,
+}: Readonly<{ defaultOpen?: boolean }> = {}) {
   return (
     <PrototypeNote
+      defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Report actions</strong> menu labels and Create/Update report dialogs match open upstream{' '}
-          <a href="https://github.com/ansible/ansible-ui/pull/3439" target="_blank" rel="noreferrer">
-            PR #3439
-          </a>{' '}
-          (
+          <strong>Report actions</strong> menu: <strong>Create new report</strong>,{' '}
+          <strong>Update report</strong>, and <strong>Delete report</strong> with matching modal
+          titles, descriptions, and disabled-state tooltips (
           <a href="https://issues.redhat.com/browse/AAP-85025" target="_blank" rel="noreferrer">
             AAP-85025
           </a>
-          ) — merged locally on this branch, not in released AAP yet.
+          ).
         </>,
         <>
-          When a saved report is selected, the toolbar shows a text-only <strong>Report actions</strong>{' '}
-          dropdown — #3439 still uses <strong>PlusCircleIcon</strong> on the
-          dropdown, which reads as &quot;create only.&quot; Standalone <strong>Create new report</strong>{' '}
-          (no saved report selected) keeps <strong>PlusCircleIcon</strong>.
+          When a saved report is selected, the <strong>Report actions</strong> dropdown is
+          text-only (no icon). Standalone <strong>Create new report</strong> keeps{' '}
+          <strong>PlusCircleIcon</strong> when no saved report is selected (
+          <a href="https://issues.redhat.com/browse/AAP-87098" target="_blank" rel="noreferrer">
+            AAP-87098
+          </a>
+          ).
         </>,
         <>
           Secondary description text under <strong>Create new report</strong> and{' '}
-          <strong>Update report</strong> menu items is a prototype extension on top of #3439 — needs a
-          separate Jira if shipped.
+          <strong>Update report</strong> menu items clarifies each action; <strong>Delete report</strong>{' '}
+          has no description (
+          <a href="https://issues.redhat.com/browse/AAP-87097" target="_blank" rel="noreferrer">
+            AAP-87097
+          </a>
+          ).
         </>,
         <>
-          <strong>Export CSV</strong> in the Cost calculation card header is from cherry-picked{' '}
-          <a href="https://github.com/ansible/ansible-ui/pull/3435" target="_blank" rel="noreferrer">
-            PR #3435
-          </a>{' '}
-          — not in released AAP yet.
+          <strong>Export CSV</strong> sits in the Cost calculation card header, not the toolbar (
+          <a href="https://issues.redhat.com/browse/AAP-85062" target="_blank" rel="noreferrer">
+            AAP-85062
+          </a>
+          ).
         </>,
         <>
-          Cost calc toolbar uses PF <strong>NumberInput</strong> for hourly rate and monthly AAP cost (
+          Cost toolbar uses PF <strong>NumberInput</strong> for hourly rate and monthly AAP cost in a
+          3-column grid with <code>reserveErrorSpace</code> so validation errors do not shift the
+          row. Per-row <strong>Time taken to manually execute</strong> uses <strong>TextInput</strong>{' '}
+          <code>type=&quot;number&quot;</code> in the table (
           <a href="https://issues.redhat.com/browse/AAP-85053" target="_blank" rel="noreferrer">
             AAP-85053
           </a>
-          ). Per-row <strong>Time taken to manually execute</strong> uses <strong>TextInput</strong>{' '}
-          <code>type=&quot;number&quot;</code> in the table — PF guidance for dense table cells.
+          ).
         </>,
         <>
-          Successful saves for subscription costs and per-row template metadata do <strong>not</strong>{' '}
-          show success toasts — inline field update only. Error and refresh-failure toasts remain.
+          <strong>Include automation creation time</strong> is an inline <strong>Checkbox</strong>{' '}
+          (label + Help on one line) in the third grid column — open PM decision vs{' '}
+          <strong>Switch</strong> (
+          <a href="https://issues.redhat.com/browse/AAP-85053" target="_blank" rel="noreferrer">
+            AAP-85053
+          </a>
+          ).
         </>,
         <>
-          <strong>Include automation creation time</strong> is an inline <strong>Checkbox</strong> (label +
-          Help on one line) in the third grid column — not upstream&apos;s inline <strong>Switch</strong> with a
-          longer label. Cost toolbar uses a 3-column grid matching <code>PageFormGrid</code> breakpoints (
-          <code>xl2=&#123;4&#125;</code>); checkbox column uses top/bottom padding to bracket the NumberInput
-          control band and <code>align-items: center</code> so it vertically centers on the inputs only (not label or
-          error rows); number fields use <code>reserveErrorSpace</code> so validation errors do not shift the row.
-          Export CSV stays in the card header only.
+          Successful inline saves for subscription costs and per-row template metadata do{' '}
+          <strong>not</strong> show success toasts; error and refresh-failure toasts remain (
+          <a href="https://issues.redhat.com/browse/AAP-85060" target="_blank" rel="noreferrer">
+            AAP-85060
+          </a>
+          ).
+        </>,
+        <>
+          Cost KPI and toolbar <strong>Help</strong> popover copy follows PatternFly content
+          guidelines — 1–3 concise sentences, second person (
+          <a href="https://issues.redhat.com/browse/AAP-87099" target="_blank" rel="noreferrer">
+            AAP-87099
+          </a>
+          ).
         </>,
       ]}
     />
   );
 }
 
-export function PostGaHighlightsPrototypeNote() {
+export function PostGaHighlightsPrototypeNote({
+  defaultOpen,
+}: Readonly<{ defaultOpen?: boolean }> = {}) {
   return (
     <PrototypeNote
+      defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Goals</strong> and <strong>Automation at a glance</strong> sit below the Highlights
-          filters and Manage view control; they are not in Manage view.
+          <strong>Goals</strong> and <strong>Automation at a glance</strong> sit below the
+          Highlights filters and Manage view control; they are not in Manage view.
         </>,
         <>
           When goals are not configured, both cards show an empty state with primary{' '}
-          <strong>Configure goals</strong> (→ Settings Edit). Page header preview toggle switches empty vs
-          populated demo data.
+          <strong>Configure goals</strong> (→ Settings Edit). Sidebar prototype overlay switches
+          empty vs populated demo data.
         </>,
         <>
-          Organizations rank by <strong>% of quarterly goal met</strong> using the saved quarterly run
-          target; shows <strong>—</strong> when goals are not configured.
+          Organizations rank by <strong>% of quarterly goal met</strong> using the saved quarterly
+          run target; shows <strong>—</strong> when goals are not configured.
         </>,
         <>
           <strong>Automation adoption</strong> level (<code>MATURITY_LEVEL</code> in mock data) is
@@ -84,6 +109,7 @@ export function PostGaHighlightsPrototypeNote() {
         </>,
       ]}
       questions={[
+        'Should Automation at a glance show org %, template %, runs, and success streak before goals are configured? In product these metrics could be computed from existing metrics data without goal targets; the prototype gates both cards on goals (G-3).',
         'Should adoption be a scorecard (4–6 platform metrics, each mapped to 0–5), with the displayed level derived from the lowest sub-score or a weighted average? Which inputs are in scope for GA (e.g. org/template activity, utilization, standardization, job reliability, governance)?',
         'For GA UI, confirm level name + description only (no decimal like “3.2 out of 5”). Should level thresholds be configurable in Settings alongside level names, or fixed by the product?',
       ]}
@@ -94,18 +120,21 @@ export function PostGaHighlightsPrototypeNote() {
 /** @deprecated Use PostGaHighlightsPrototypeNote */
 export const PostGaLeaderboardsPrototypeNote = PostGaHighlightsPrototypeNote;
 
-export function AutomationDashboardSettingsPrototypeNote() {
+export function AutomationDashboardSettingsPrototypeNote({
+  defaultOpen,
+}: Readonly<{ defaultOpen?: boolean }> = {}) {
   return (
     <PrototypeNote
+      defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Settings → Automation Analytics → Dashboard</strong> is new (Gateway settings pattern).
-          Goals and adoption levels persist in browser <code>localStorage</code> only in the prototype — settings
-          API in product.
+          <strong>Settings → Automation Analytics → Dashboard</strong> is new (Gateway settings
+          pattern). Goals and adoption levels persist in browser <code>localStorage</code> only in
+          the prototype — settings API in product.
         </>,
         <>
-          Goal fields have no industry-standard default — admins configure org-specific targets. Adoption
-          levels ship with five CMMI-style default rows.
+          Goal fields have no industry-standard default — admins configure org-specific targets.
+          Adoption levels ship with five CMMI-style default rows.
         </>,
       ]}
       questions={[

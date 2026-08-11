@@ -1,7 +1,6 @@
 import { Flex, Switch } from '@patternfly/react-core';
 import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PrototypeDemoControl } from '../../../../../platform/common/PrototypeDemoControl';
 import {
   getGoalsPreviewMode,
   setGoalsPreviewMode,
@@ -18,9 +17,9 @@ export function GoalsPreviewControl() {
   const isPopulated = previewMode === 'configured';
 
   return (
-    <PrototypeDemoControl>
-      <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }}>
-        <span style={{ fontWeight: 400, textTransform: 'none' }}>{t('Goals')}</span>
+    <Flex direction={{ default: 'column' }} gap={{ default: 'gapSm' }}>
+      <span style={{ fontWeight: 700, textTransform: 'none' }}>{t('Goals')}</span>
+      <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }} wrap="wrap">
         <span
           style={{
             fontWeight: 400,
@@ -48,6 +47,6 @@ export function GoalsPreviewControl() {
           {t('Populated')}
         </span>
       </Flex>
-    </PrototypeDemoControl>
+    </Flex>
   );
 }

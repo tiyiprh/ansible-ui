@@ -1,7 +1,8 @@
 import { ChatbotSideBar } from '@ansible/chatbot/ChatbotSideBar';
 import { Page } from '@patternfly/react-core';
-import { ReactNode, useEffect, useMemo } from 'react';
-import { Outlet, Route, RouteObject, Routes } from 'react-router-dom';
+import { ReactNode, useLayoutEffect, useMemo } from 'react';
+import { Route, RouteObject, Routes } from 'react-router-dom';
+import { PageContentOutlet } from './PageContentOutlet';
 import { PageNotFound } from '../PageEmptyStates/PageNotFound';
 import { PageNavigation } from '../PageNavigation/PageNavigation';
 import { PageNavigationItem } from '../PageNavigation/PageNavigationItem';
@@ -50,7 +51,7 @@ export function PageApp(props: {
               isContentFilled
             >
               {props.banner}
-              <Outlet />
+              <PageContentOutlet />
             </Page>
           </ChatbotSideBar>
         ),
@@ -68,7 +69,9 @@ export function PageApp(props: {
     ]
   );
   const [_, setNavigation] = usePageNavigationRoutesContext();
-  useEffect(() => setNavigation(navigationItems), [navigationItems, setNavigation]);
+  useLayoutEffect(() => {
+    setNavigation(navigation);
+  }, [navigation, setNavigation]);
 
   return <Routes>{navigationItems.map(NavigationRoute)}</Routes>;
 }

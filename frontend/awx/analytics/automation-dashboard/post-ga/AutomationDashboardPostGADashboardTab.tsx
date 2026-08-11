@@ -1,8 +1,9 @@
 import { PageDashboardContext, useGetPageUrl } from '@ansible/ansible-ui-framework';
 import { Grid, GridItem } from '@patternfly/react-core';
 import useResizeObserver from '@react-hook/resize-observer';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRegisterPrototypeNotes } from '../../../../../platform/common/PrototypeNotesRegistry';
 import { AwxRoute } from '../../../main/AwxRoutes';
 import { useAutomationDashboardCollectionStatus } from '../common/useAutomationDashboardCollectionStatus';
 import {
@@ -16,6 +17,7 @@ import { useAutomationDashboardView } from '../views/useAutomationDashboardView'
 import { LoadingState } from '@ansible/ansible-ui-framework/components/LoadingState';
 import { Scrollable } from '@ansible/ansible-ui-framework/components/Scrollable';
 import { GaDashboardToolbarPrototypeNote } from './PostGaPrototypeNotes';
+import { usePostGADashboardPeriodFilter, withSharedPeriod } from './PostGADashboardFilterContext';
 import './postGa.css';
 
 const Divisor = 1662 / 24;
@@ -30,8 +32,35 @@ export function AutomationDashboardPostGADashboardTab() {
   const { t } = useTranslation();
   const toolbarFilters = useAutomationDashboardToolbar();
   const getPageUrl = useGetPageUrl();
-  const view = useAutomationDashboardView({ toolbarFilters });
+  const view = useAutomationDashboardView({ toolbarFilters, disableQueryString: true });
+  const { period, setPeriod, periodArraysEqual } = usePostGADashboardPeriodFilter();
   const { details } = view;
+  const { filterState, setFilterState } = view.mainTableView;
+  const syncingPeriodRef = useRef(false);
+
+  useRegisterPrototypeNotes({
+    id: 'post-ga-dashboard',
+    title: t('Automation Dashboard'),
+    content: <GaDashboardToolbarPrototypeNote defaultOpen />,
+  });
+
+  useEffect(() => {
+    if (syncingPeriodRef.current) return;
+    if (!periodArraysEqual(filterState.period, period)) {
+      syncingPeriodRef.current = true;
+      setFilterState((prev) => withSharedPeriod(prev, period));
+      syncingPeriodRef.current = false;
+    }
+  }, [filterState.period, period, periodArraysEqual, setFilterState]);
+
+  useEffect(() => {
+    if (syncingPeriodRef.current) return;
+    if (filterState.period && !periodArraysEqual(filterState.period, period)) {
+      syncingPeriodRef.current = true;
+      setPeriod(filterState.period);
+      syncingPeriodRef.current = false;
+    }
+  }, [filterState.period, period, periodArraysEqual, setPeriod]);
   const noDataString = t('No jobs have been run.');
   const { isLoading } = useAutomationDashboardCollectionStatus();
 
@@ -72,7 +101,6 @@ export function AutomationDashboardPostGADashboardTab() {
         keyFn={(item) => item.id}
         registerClearCallback={view.registerClearCallback}
       />
-      <GaDashboardToolbarPrototypeNote />
       <PageDashboardContext.Provider value={pageDashboardContextValue}>
         <Scrollable marginLeft={20} marginRight={20} marginBottom={16} marginTop={16}>
           <div ref={measureRef} style={{ width: '100%' }}>

@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useRegisterPrototypeNotes } from '../common/PrototypeNotesRegistry';
 import {
   clearGoals,
   loadGoals,
@@ -137,6 +138,12 @@ export function AutomationDashboardSettingsEdit() {
   const navigate = useNavigate();
   const savedGoals = loadGoals();
 
+  useRegisterPrototypeNotes({
+    id: 'automation-dashboard-settings',
+    title: t('Dashboard settings'),
+    content: <AutomationDashboardSettingsPrototypeNote defaultOpen />,
+  });
+
   const defaultValue: AutomationDashboardSettingsForm = {
     quarterlyRunTarget: savedGoals?.quarterlyRunTarget ?? '',
     monthlySavingsTarget: savedGoals?.monthlySavingsTarget ?? '',
@@ -184,9 +191,6 @@ export function AutomationDashboardSettingsEdit() {
           </Button>
         }
       >
-        <div style={{ gridColumn: '1 / -1' }}>
-          <AutomationDashboardSettingsPrototypeNote />
-        </div>
         <PageFormSection title={t('Automation goals')}>
           <Content
             component="p"

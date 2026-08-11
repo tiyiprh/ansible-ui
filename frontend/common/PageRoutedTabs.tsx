@@ -22,12 +22,18 @@ export function PageRoutedTabs(props: {
   const location = useLocation();
   const { setTabBreadcrumb } = usePageBreadcrumbs();
 
-  const activeTab = props.tabs.find(
-    (tab) =>
-      tab &&
-      (getPageUrl(tab.page, { params: props.params }) === location.pathname ||
-        location.pathname.includes(getPageUrl(tab.page, { params: props.params })))
-  );
+  const activeTab = props.tabs
+    .filter(
+      (tab): tab is { label: string; page: string; dataCy?: string } =>
+        !!tab &&
+        (getPageUrl(tab.page, { params: props.params }) === location.pathname ||
+          location.pathname.includes(getPageUrl(tab.page, { params: props.params })))
+    )
+    .sort(
+      (a, b) =>
+        getPageUrl(b.page, { params: props.params }).length -
+        getPageUrl(a.page, { params: props.params }).length
+    )[0];
 
   // Set current active tab to tabBreadcrumb in the PageBreadcrumbContext
   useEffect(() => {
@@ -103,7 +109,7 @@ export function PageRoutedTabs(props: {
           {tabs}
         </Tabs>
       </PageSection>
-      <Outlet context={props.componentParams} />
+      <Outlet context={props.componentParams} key={location.pathname} />
     </>
   );
 }

@@ -1,34 +1,39 @@
 import { PageHeader, PageLayout } from '@ansible/ansible-ui-framework';
-import { PageRoutedTabs } from '@ansible/common-ui/PageRoutedTabs';
 import { useTranslation } from 'react-i18next';
-import { AwxRoute } from '../../main/AwxRoutes';
+import { useLocation } from 'react-router-dom';
 import { useAutomationDashboardCollectionStatus } from './common/useAutomationDashboardCollectionStatus';
-import { LoadingState } from '@ansible/ansible-ui-framework/components/LoadingState';
-import { Scrollable } from '@ansible/ansible-ui-framework/components/Scrollable';
-import { GoalsPreviewControl } from './post-ga/GoalsPreviewControl';
+import { PostGADashboardFilterProvider } from './post-ga/PostGADashboardFilterContext';
+import { PostGAPageRoutedTabs } from './post-ga/PostGAPageRoutedTabs';
+import { AwxRoute } from '../../main/AwxRoutes';
 import './post-ga/postGa.css';
+
+const POST_GA_BASE_PATH = '/analytics/automation-dashboard/post-ga';
 
 export function AutomationDashboardPostGA() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const description = t(
     'View automation performance, goals, and cost savings for your organization. Filter by period and organization, or save custom views as reports.'
   );
   const { isLoading } = useAutomationDashboardCollectionStatus();
 
-  return (
-    <PageLayout>
-      {!isLoading && (
-        <PageHeader
-          title={t('Automation Dashboard')}
-          titleHelpTitle={t('Automation Dashboard')}
-          titleHelp={description}
-          titleHeadingLevel="h2"
-          headerActions={<GoalsPreviewControl />}
-        />
-      )}
+  if (!pathname.includes(POST_GA_BASE_PATH)) {
+    return null;
+  }
 
-      {!isLoading && (
-        <PageRoutedTabs
+  return (
+    <PostGADashboardFilterProvider>
+      <PageLayout>
+        {!isLoading && (
+          <PageHeader
+            title={t('Automation Dashboard')}
+            titleHelpTitle={t('Automation Dashboard')}
+            titleHelp={description}
+            titleHeadingLevel="h2"
+          />
+        )}
+
+        <PostGAPageRoutedTabs
           tabs={[
             {
               label: t('Dashboard'),
@@ -42,13 +47,7 @@ export function AutomationDashboardPostGA() {
             },
           ]}
         />
-      )}
-
-      {isLoading && (
-        <Scrollable marginLeft={20} marginRight={20} marginBottom={16} marginTop={16}>
-          <LoadingState />
-        </Scrollable>
-      )}
-    </PageLayout>
+      </PageLayout>
+    </PostGADashboardFilterProvider>
   );
 }

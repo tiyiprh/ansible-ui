@@ -13,10 +13,7 @@ import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel, MetricValue } from './DashboardMetricText';
-import {
-  getGoalsCardSnapshot,
-  subscribeDashboardSettings,
-} from './dashboardSettingsUtils';
+import { getGoalsCardSnapshot, subscribeDashboardSettings } from './dashboardSettingsUtils';
 import { GoalsConfigureEmptyState } from './GoalsConfigureEmptyState';
 import { loadMaturityLevels } from './maturityUtils';
 import {
@@ -101,7 +98,7 @@ export function DashboardAtAGlanceCard() {
                 </GridItem>
                 <GridItem span={4} className="post-ga-at-a-glance-metric-col">
                   <MetricValue>{HIGHLIGHTS.runsThisMonth.toLocaleString()}</MetricValue>
-                  <MetricLabel>{t('Runs this month')}</MetricLabel>
+                  <MetricLabel>{t('Runs in selected period')}</MetricLabel>
                 </GridItem>
               </Grid>
             </GridItem>
@@ -165,9 +162,7 @@ export function DashboardAtAGlanceCard() {
                     name: currentLevel?.name ?? '',
                   })}
                 </MetricValue>
-                {currentLevel?.description && (
-                  <MetricLabel>{currentLevel.description}</MetricLabel>
-                )}
+                {currentLevel?.description && <MetricLabel>{currentLevel.description}</MetricLabel>}
               </Flex>
             </GridItem>
 

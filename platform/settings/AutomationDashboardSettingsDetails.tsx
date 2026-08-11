@@ -15,6 +15,7 @@ import { PencilAltIcon } from '@patternfly/react-icons';
 import { Fragment, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useRegisterPrototypeNotes } from '../common/PrototypeNotesRegistry';
 import {
   hasConfiguredGoals,
   loadGoals,
@@ -29,6 +30,12 @@ export function AutomationDashboardSettingsDetails() {
   const navigate = useNavigate();
   const goals = loadGoals();
   const levels = loadMaturityLevels();
+
+  useRegisterPrototypeNotes({
+    id: 'automation-dashboard-settings',
+    title: t('Dashboard settings'),
+    content: <AutomationDashboardSettingsPrototypeNote defaultOpen />,
+  });
 
   const description = t(
     'Configure goals and adoption levels for your Automation Dashboard. These values appear on the Dashboard and Highlights tabs.'
@@ -65,7 +72,6 @@ export function AutomationDashboardSettingsDetails() {
           padding={{ default: 'padding' }}
           style={{ paddingBottom: 'var(--pf-t--global--spacer--xl)' }}
         >
-          <AutomationDashboardSettingsPrototypeNote />
           <Form style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <PageFormGrid>
               <PageFormSection title={t('Automation goals')}>

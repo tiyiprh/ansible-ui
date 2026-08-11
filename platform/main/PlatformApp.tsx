@@ -14,6 +14,7 @@ import { PersonaViewSwitcher } from './persona-view/PersonaViewSwitcher';
 import { usePlatformActiveUser } from './PlatformActiveUserProvider';
 import { PlatformMasthead } from './PlatformMasthead';
 import { usePlatformNavigation } from './usePlatformNavigation';
+import { getRouterBasename } from './routerBasename';
 import { PageTitleProvider } from '@ansible/ansible-ui-framework/PageTitle/PageTitle';
 
 export function PlatformApp() {
@@ -162,7 +163,7 @@ export function PlatformApp() {
       <PageApp
         masthead={<PlatformMasthead />}
         navigation={navigation}
-        basename={process.env.ROUTE_PREFIX ?? '/'}
+        basename={getRouterBasename()}
         banner={
           <>
             {controllerDownBanner}

@@ -41,8 +41,7 @@ import { useAwxUsersRoutes } from './routes/useAwxUsersRoutes';
 import { useAwxWorkflowApprovalRoutes } from './routes/useAwxWorkflowApprovalRoutes';
 import { AutomationDashboard } from '../analytics/automation-dashboard/AutomationDashboard';
 import { AutomationDashboardPostGA } from '../analytics/automation-dashboard/AutomationDashboardPostGA';
-import { AutomationDashboardPostGADashboardTab } from '../analytics/automation-dashboard/post-ga/AutomationDashboardPostGADashboardTab';
-import { AutomationDashboardPostGALeaderboardsTab } from '../analytics/automation-dashboard/post-ga/AutomationDashboardPostGALeaderboardsTab';
+import { NestedRouteOutlet } from '@ansible/ansible-ui-framework/PageApp/PageContentOutlet';
 
 export function useAwxNavigation() {
   const { t } = useTranslation();
@@ -109,6 +108,7 @@ export function useAwxNavigation() {
       id: AwxRoute.Analytics,
       label: t('Analytics'),
       path: 'analytics',
+      element: <NestedRouteOutlet />,
       children: [
         {
           id: AwxRoute.AutomationDashboard,
@@ -125,12 +125,16 @@ export function useAwxNavigation() {
             {
               id: AwxRoute.AutomationDashboardPostGADashboard,
               path: 'dashboard',
-              element: <AutomationDashboardPostGADashboardTab />,
+              children: [],
             },
             {
               id: AwxRoute.AutomationDashboardPostGALeaderboards,
+              path: 'highlights',
+              children: [],
+            },
+            {
               path: 'leaderboards',
-              element: <AutomationDashboardPostGALeaderboardsTab />,
+              element: <Navigate to="../highlights" replace />,
             },
             {
               path: '',

@@ -1,7 +1,7 @@
 import { Help } from '@ansible/ansible-ui-framework/components/Help';
 import {
   IFilterState,
-  IToolbarSingleSelectFilter,
+  IToolbarFilter,
   PageToolbarFilters,
   ToolbarFilterType,
 } from '@ansible/ansible-ui-framework';
@@ -25,21 +25,39 @@ import {
 import { CogIcon } from '@patternfly/react-icons';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { ReactNode, useMemo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FILTER_ORGANIZATIONS, topOrganizations, topProjects, topTemplates } from './postGaMockData';
+import { useAutomationDashboardToolbar } from '../components';
+import { AutomationDashboardDateRangeFilterPresets } from '../constants';
 import {
-  getEffectiveGoalTargets,
-  shouldUseGoalTargetsForDisplay,
-} from './dashboardSettingsUtils';
+  FILTER_ORGANIZATIONS,
+  topOrganizations,
+  topProjects,
+  topTemplates,
+} from './postGaMockData';
+import { getEffectiveGoalTargets, shouldUseGoalTargetsForDisplay } from './dashboardSettingsUtils';
 import { DashboardAtAGlanceCard } from './DashboardAtAGlanceCard';
 import { DashboardGoalsCard } from './DashboardGoalsCard';
+import { usePostGADashboardPeriodFilter } from './PostGADashboardFilterContext';
 import { useManagedLeaderboardPanels } from './useManagedLeaderboardPanels';
 
-function getPeriodScale(period: string | undefined): number {
-  if (period === 'quarter') return 2.8;
-  if (period === 'all') return 4.5;
-  return 1;
+function getPeriodScale(period: string[] | undefined): number {
+  const preset = period?.[0];
+  switch (preset) {
+    case AutomationDashboardDateRangeFilterPresets.last_14_days:
+      return 1.15;
+    case AutomationDashboardDateRangeFilterPresets.last_30_days:
+      return 1.3;
+    case AutomationDashboardDateRangeFilterPresets.last_60_days:
+      return 1.8;
+    case AutomationDashboardDateRangeFilterPresets.last_90_days:
+      return 2.5;
+    case AutomationDashboardDateRangeFilterPresets.custom:
+      return 1.2;
+    case AutomationDashboardDateRangeFilterPresets.last_7_days:
+    default:
+      return 1;
+  }
 }
 
 function formatGoalMetPercent(
@@ -104,32 +122,26 @@ function LeaderboardPanelCard({
   );
 }
 
-const LEADERBOARD_FILTER_DEFAULTS: IFilterState = {
-  period: ['month'],
+const LEADERBOARD_ORG_FILTER_DEFAULTS: IFilterState = {
   organization: ['View all'],
 };
 
 export function AutomationDashboardLeaderboards() {
   const { t } = useTranslation();
   const { openManageLeaderboards, visiblePanels } = useManagedLeaderboardPanels();
-  const [filterState, setFilterState] = useState<IFilterState>(LEADERBOARD_FILTER_DEFAULTS);
+  const dashboardToolbarFilters = useAutomationDashboardToolbar();
+  const periodToolbarFilter = useMemo(
+    () => dashboardToolbarFilters.find((filter) => filter.key === 'period'),
+    [dashboardToolbarFilters]
+  );
+  const { period, setPeriod } = usePostGADashboardPeriodFilter();
+  const [orgFilterState, setOrgFilterState] = useState<IFilterState>(
+    LEADERBOARD_ORG_FILTER_DEFAULTS
+  );
 
-  const leaderboardToolbarFilters = useMemo<IToolbarSingleSelectFilter[]>(
+  const leaderboardToolbarFilters = useMemo<IToolbarFilter[]>(
     () => [
-      {
-        key: 'period',
-        label: t('Period'),
-        type: ToolbarFilterType.SingleSelect,
-        isPinned: true,
-        isRequired: true,
-        placeholder: t('Select period'),
-        query: 'period',
-        options: [
-          { label: t('This month'), value: 'month' },
-          { label: t('This quarter'), value: 'quarter' },
-          { label: t('All time'), value: 'all' },
-        ],
-      },
+      ...(periodToolbarFilter ? [periodToolbarFilter] : []),
       {
         key: 'organization',
         label: t('Organization'),
@@ -144,15 +156,33 @@ export function AutomationDashboardLeaderboards() {
         ],
       },
     ],
-    [t]
+    [periodToolbarFilter, t]
   );
 
-  const periodFilter = filterState.period?.[0] ?? 'month';
-  const periodScale = getPeriodScale(periodFilter);
+  const filterState = useMemo<IFilterState>(
+    () => ({
+      period,
+      organization: orgFilterState.organization,
+    }),
+    [orgFilterState.organization, period]
+  );
+
+  const setFilterState = useCallback<Dispatch<SetStateAction<IFilterState>>>(
+    (next) => {
+      const resolved = typeof next === 'function' ? next(filterState) : next;
+      if (resolved.period) {
+        setPeriod(resolved.period);
+      }
+      if (resolved.organization) {
+        setOrgFilterState({ organization: resolved.organization });
+      }
+    },
+    [filterState, setPeriod]
+  );
+
+  const periodScale = getPeriodScale(period);
   const useGoalTargets = shouldUseGoalTargetsForDisplay();
-  const quarterlyRunTarget = useGoalTargets
-    ? getEffectiveGoalTargets().quarterlyRunTarget
-    : 0;
+  const quarterlyRunTarget = useGoalTargets ? getEffectiveGoalTargets().quarterlyRunTarget : 0;
 
   const viewFilter =
     filterState.organization?.[0] === 'View all' ? null : (filterState.organization?.[0] ?? null);

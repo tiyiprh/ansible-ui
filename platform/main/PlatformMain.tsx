@@ -18,6 +18,9 @@ import { Bullseye, Spinner } from '@patternfly/react-core';
 import { Fragment, Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { PrototypeBanner } from '../common/PrototypeBanner';
+import { PrototypeNotesRegistryProvider } from '../common/PrototypeNotesRegistry';
+import { PrototypeDesignNotesLauncher } from '../common/PrototypeDesignNotesLauncher';
+import { PrototypeSidebarOverlay } from '../common/PrototypeSidebarOverlay';
 import { QuickStartProvider } from '../overview/quickstarts/QuickStartProvider';
 import { gatewayAPI } from '../utils/gateway-api-utils';
 import {
@@ -31,37 +34,46 @@ import { PlatformActiveUserProvider } from './PlatformActiveUserProvider';
 import { PlatformApp } from './PlatformApp';
 import { PlatformLogin } from './PlatformLogin';
 import { PlatformSubscription } from './PlatformSubscription';
+import { getRouterBasename } from './routerBasename';
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
 // eslint-disable-next-line no-restricted-exports
 export default function PlatformMain() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <PrototypeBanner />
-      <Suspense
-        fallback={
-          <Bullseye>
-            <Spinner />
-          </Bullseye>
-        }
-      >
-        <PageFramework>
-          <PlatformActiveUserProvider>
-            <AwxActiveUserProvider>
-              <HubActiveUserProvider>
-                <PlatformLogin>
-                  <GatewayUIAuthProvider>
-                    <GatewayServicesProvider>
-                      <PlatformMainInternal />
-                    </GatewayServicesProvider>
-                  </GatewayUIAuthProvider>
-                </PlatformLogin>
-              </HubActiveUserProvider>
-            </AwxActiveUserProvider>
-          </PlatformActiveUserProvider>
-        </PageFramework>
-      </Suspense>
+    <BrowserRouter basename={getRouterBasename()} unstable_useTransitions={false}>
+      <PrototypeNotesRegistryProvider>
+        <PrototypeBanner />
+        {isDemoMode && (
+          <>
+            <PrototypeSidebarOverlay />
+            <PrototypeDesignNotesLauncher />
+          </>
+        )}
+        <Suspense
+          fallback={
+            <Bullseye>
+              <Spinner />
+            </Bullseye>
+          }
+        >
+          <PageFramework>
+            <PlatformActiveUserProvider>
+              <AwxActiveUserProvider>
+                <HubActiveUserProvider>
+                  <PlatformLogin>
+                    <GatewayUIAuthProvider>
+                      <GatewayServicesProvider>
+                        <PlatformMainInternal />
+                      </GatewayServicesProvider>
+                    </GatewayUIAuthProvider>
+                  </PlatformLogin>
+                </HubActiveUserProvider>
+              </AwxActiveUserProvider>
+            </PlatformActiveUserProvider>
+          </PageFramework>
+        </Suspense>
+      </PrototypeNotesRegistryProvider>
     </BrowserRouter>
   );
 }

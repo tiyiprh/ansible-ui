@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useIsMounted } from './useIsMounted';
 
 export function useWindowLocation() {
   const isMounted = useIsMounted();
+  const routerLocation = useLocation();
   const [location, setLocation] = useState<Location | void>(
     isMounted ? window.location : undefined
   );
@@ -13,14 +15,12 @@ export function useWindowLocation() {
 
   useEffect(() => {
     if (!isMounted) return;
-    if (!location) {
-      setWindowLocation();
-    }
+    setWindowLocation();
     window.addEventListener('popstate', setWindowLocation);
     return () => {
       window.removeEventListener('popstate', setWindowLocation);
     };
-  }, [isMounted, location, setWindowLocation]);
+  }, [isMounted, routerLocation.pathname, routerLocation.search, routerLocation.hash, setWindowLocation]);
 
   const push = useCallback(
     (url?: string | URL | null) => {

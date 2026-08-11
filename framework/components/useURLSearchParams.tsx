@@ -1,5 +1,16 @@
-import { useCallback, useState, useMemo } from 'react';
-import { useWindowLocation } from './useWindowLocation';
+import { useCallback, useMemo } from 'react';
+import { useSearchParams as useRouterSearchParams } from 'react-router-dom';
+
+function stripSpecPath(search: string): string {
+  /** Cypress component tests add a specPath param that must be ignored */
+  if (search.includes('?specPath=')) {
+    return search.substring(0, search.indexOf('?specPath='));
+  }
+  if (search.includes('&specPath=')) {
+    return search.substring(0, search.indexOf('&specPath='));
+  }
+  return search;
+}
 
 // This hook is used to get and set URLSearchParams in the URL.
 // It does not create a new navigation in navigation history when updating the URLSearchParams.
@@ -7,34 +18,22 @@ export function useURLSearchParams(): [
   URLSearchParams,
   (setSearchParams: URLSearchParams) => void,
 ] {
-  const location = useWindowLocation();
-  const [pathname] = useState(location.location?.pathname || '/');
+  const [routerSearchParams, setRouterSearchParams] = useRouterSearchParams();
+
   const searchParams = useMemo<URLSearchParams>(() => {
-    /** Cypress component tests add a specPath param that must be ignored */
-    let search = location.location?.search;
-    if (search && search.includes('?specPath=')) {
-      search = search.substring(0, search.indexOf('?specPath='));
-    } else if (search && search.includes('&specPath=')) {
-      search = search.substring(0, search.indexOf('&specPath='));
-    }
-    return new URLSearchParams(search ?? '/');
-  }, [location.location?.search]);
+    const search = stripSpecPath(routerSearchParams.toString() ? `?${routerSearchParams.toString()}` : '');
+    return new URLSearchParams(search || '');
+  }, [routerSearchParams]);
 
   const setSearchParams = useCallback(
-    (searchParams: URLSearchParams) => {
-      if (pathname !== (location.location?.pathname || '/')) {
-        // don't change query params if we've navigated away from original page
-        return;
-      }
-      const newSearch = searchParams.toString();
-      const currentSearch = location.location?.search?.replace(/^\?/, '') ?? '';
-      // Skip update if the search string hasn't changed to avoid
-      // excessive history.replaceState calls (Firefox rate-limits these)
+    (nextSearchParams: URLSearchParams) => {
+      const newSearch = nextSearchParams.toString();
+      const currentSearch = routerSearchParams.toString();
       if (newSearch === currentSearch) return;
-      if (newSearch) location.update('?' + newSearch);
-      else location.update(pathname); // retain the existing pathname
+      setRouterSearchParams(nextSearchParams, { replace: true });
     },
-    [location, pathname]
+    [routerSearchParams, setRouterSearchParams]
   );
+
   return [searchParams, setSearchParams];
 }

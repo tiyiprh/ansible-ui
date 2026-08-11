@@ -26,8 +26,9 @@ export function useAutomationDashboardBaseView<T extends { id: number }>(options
   /** Extra querystring params passed to the backed API.  */
   queryParams?: QueryParams;
   defaultFilters?: { [key: string]: string[] };
+  disableQueryString?: boolean;
 }): IAutomationDashboardBaseView<T> {
-  const { url, toolbarFilters, queryParams, defaultFilters } = options;
+  const { url, toolbarFilters, queryParams, defaultFilters, disableQueryString } = options;
 
   const view = useView({
     defaultValues: {
@@ -35,7 +36,7 @@ export function useAutomationDashboardBaseView<T extends { id: number }>(options
       sortDirection: 'asc',
       filterState: defaultFilters,
     },
-    disableQueryString: false,
+    disableQueryString: disableQueryString ?? false,
     ignoreQueryStringKeys: [AUTOMATION_DASHBOARD_REPORT_QUERY_KEY],
   });
   const itemCountRef = useRef<{ itemCount: number | undefined }>({ itemCount: undefined });
