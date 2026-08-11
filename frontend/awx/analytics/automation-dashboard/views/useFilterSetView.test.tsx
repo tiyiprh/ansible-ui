@@ -2,10 +2,18 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 import { metricsAPI } from '../../../common/api/metrics-utils';
 import type { IDashboardFilterSet } from '../types';
+import { AUTOMATION_DASHBOARD_REPORT_QUERY_KEY } from '../constants/reportQuery';
 import { useFilterSetView } from './useFilterSetView';
+
+const mockSetSearchParams = vi.fn();
+let mockSearchParams = new URLSearchParams();
+
+vi.mock('@ansible/ansible-ui-framework/components/useURLSearchParams', () => ({
+  useURLSearchParams: () => [mockSearchParams, mockSetSearchParams],
+}));
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -35,6 +43,10 @@ const pageResponse = (results: IDashboardFilterSet[], next: string | null = null
 const server = setupServer();
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+beforeEach(() => {
+  mockSearchParams = new URLSearchParams();
+  mockSetSearchParams.mockClear();
+});
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
@@ -274,6 +286,76 @@ describe('useFilterSetView', () => {
       });
 
       expect(new URL(capturedUrl).searchParams.get('search')).toBe('my report');
+    });
+  });
+
+  describe('report URL persistence', () => {
+    test('should initialize value from report query param', () => {
+      mockSearchParams = new URLSearchParams(`${AUTOMATION_DASHBOARD_REPORT_QUERY_KEY}=1`);
+
+      const { result } = renderHook(() => useFilterSetView());
+
+      expect(result.current.value).toBe('1');
+    });
+
+    test('should write report id to URL when setValue is called', () => {
+      const { result } = renderHook(() => useFilterSetView());
+
+      act(() => {
+        result.current.setValue('2');
+      });
+
+      expect(mockSetSearchParams).toHaveBeenCalled();
+      const params = mockSetSearchParams.mock.calls.at(-1)?.[0] as URLSearchParams;
+      expect(params.get(AUTOMATION_DASHBOARD_REPORT_QUERY_KEY)).toBe('2');
+    });
+
+    test('should remove report from URL when setValue is cleared', () => {
+      mockSearchParams = new URLSearchParams(`${AUTOMATION_DASHBOARD_REPORT_QUERY_KEY}=1`);
+      const { result } = renderHook(() => useFilterSetView());
+
+      act(() => {
+        result.current.setValue(undefined);
+      });
+
+      const params = mockSetSearchParams.mock.calls.at(-1)?.[0] as URLSearchParams;
+      expect(params.get(AUTOMATION_DASHBOARD_REPORT_QUERY_KEY)).toBeNull();
+    });
+
+    test('should restore selectedFilterSet from persisted report id', async () => {
+      mockSearchParams = new URLSearchParams(`${AUTOMATION_DASHBOARD_REPORT_QUERY_KEY}=1`);
+      server.use(
+        http.get(metricsAPI`/dashboard_reports/filter_sets/1/`, () =>
+          HttpResponse.json(filterSetA)
+        )
+      );
+
+      const { result } = renderHook(() => useFilterSetView());
+
+      await waitFor(() => {
+        expect(result.current.selectedFilterSet).toEqual(filterSetA);
+      });
+      expect(result.current.filterSets).toContainEqual(filterSetA);
+    });
+
+    test('should clear persisted report and call onPersistedReportMissing when restore fails', async () => {
+      mockSearchParams = new URLSearchParams(`${AUTOMATION_DASHBOARD_REPORT_QUERY_KEY}=999`);
+      const onPersistedReportMissing = vi.fn();
+      server.use(
+        http.get(metricsAPI`/dashboard_reports/filter_sets/999/`, () =>
+          HttpResponse.json({ detail: 'Not found.' }, { status: 404 })
+        )
+      );
+
+      const { result } = renderHook(() =>
+        useFilterSetView({ onPersistedReportMissing })
+      );
+
+      await waitFor(() => {
+        expect(onPersistedReportMissing).toHaveBeenCalled();
+      });
+      expect(result.current.value).toBeUndefined();
+      expect(result.current.selectedFilterSet).toBeUndefined();
     });
   });
 });

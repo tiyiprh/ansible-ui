@@ -27,17 +27,13 @@ import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FILTER_ORGANIZATIONS,
-  topHumanHoursReclaimed,
-  topOrganizations,
-  topProjects,
-  topTemplates,
-} from './postGaMockData';
+import { FILTER_ORGANIZATIONS, topOrganizations, topProjects, topTemplates } from './postGaMockData';
 import {
   getEffectiveGoalTargets,
   shouldUseGoalTargetsForDisplay,
 } from './dashboardSettingsUtils';
+import { DashboardAtAGlanceCard } from './DashboardAtAGlanceCard';
+import { DashboardGoalsCard } from './DashboardGoalsCard';
 import { useManagedLeaderboardPanels } from './useManagedLeaderboardPanels';
 
 function getPeriodScale(period: string | undefined): number {
@@ -189,15 +185,6 @@ export function AutomationDashboardLeaderboards() {
     return scaled.filter((r) => r.org === viewFilter);
   }, [viewFilter, periodScale]);
 
-  const filteredHumanHoursReclaimed = useMemo(() => {
-    const scaled = topHumanHoursReclaimed.map((row) => ({
-      ...row,
-      hoursSaved: row.hoursSaved * periodScale,
-    }));
-    if (!viewFilter) return scaled;
-    return scaled.filter((r) => r.org === viewFilter);
-  }, [viewFilter, periodScale]);
-
   const emptyOrgBody = viewFilter
     ? t('No organization data for {{org}} in the selected period.', { org: viewFilter })
     : t('No organization data for the selected period.');
@@ -205,7 +192,7 @@ export function AutomationDashboardLeaderboards() {
   return (
     <>
       <Toolbar
-        ouiaId="leaderboards-toolbar"
+        ouiaId="highlights-toolbar"
         inset={{
           default: 'insetMd',
           sm: 'insetMd',
@@ -231,6 +218,11 @@ export function AutomationDashboardLeaderboards() {
           </ToolbarGroup>
         </ToolbarContent>
       </Toolbar>
+
+      <div className="post-ga-goals-row" style={{ marginBottom: 24 }}>
+        <DashboardGoalsCard />
+        <DashboardAtAGlanceCard />
+      </div>
 
       <Grid hasGutter>
         {visiblePanels.map((panel) => {
@@ -380,52 +372,6 @@ export function AutomationDashboardLeaderboards() {
                   )}
                 >
                   {null}
-                </LeaderboardPanelCard>
-              </GridItem>
-            );
-          }
-
-          if (panel.id === 'humanHoursReclaimed') {
-            return (
-              <GridItem key={panel.id} md={6}>
-                <LeaderboardPanelCard
-                  id="leaderboard-human-hours-card"
-                  title={t('Human hours reclaimed')}
-                  help={t(
-                    'Users ranked by the hours your organization saved this month from templates they created or own.'
-                  )}
-                  isEmpty={filteredHumanHoursReclaimed.length === 0}
-                  emptyTitle={t('No data')}
-                  emptyBody={
-                    viewFilter
-                      ? t('No human hours reclaimed data for {{org}} in the selected period.', {
-                          org: viewFilter,
-                        })
-                      : t('No human hours reclaimed data for the selected period.')
-                  }
-                >
-                  <Table variant="compact" aria-label={t('Human hours reclaimed')}>
-                    <Thead>
-                      <Tr>
-                        <Th>{t('User')}</Th>
-                        <Th>{t('Hours saved')}</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {filteredHumanHoursReclaimed.map((row) => (
-                        <Tr key={row.userName}>
-                          <Td dataLabel={t('User')}>
-                            <Button variant="link" isInline>
-                              {row.userName}
-                            </Button>
-                          </Td>
-                          <Td dataLabel={t('Hours saved')}>
-                            {t('{{hours}}h', { hours: row.hoursSaved.toFixed(1) })}
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
                 </LeaderboardPanelCard>
               </GridItem>
             );

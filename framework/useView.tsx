@@ -161,6 +161,7 @@ export function useView(options: ViewOptions): IView {
     const filters: IFilterState = defaultValues?.filterState ?? {};
     for (const key of searchParams.keys()) {
       if (defaultIgnoreQueryStringKeys.includes(key)) continue;
+      if (ignoreQueryStringKeys?.includes(key)) continue;
       const value = searchParams.get(key);
       if (value) {
         const values = value.split(',');

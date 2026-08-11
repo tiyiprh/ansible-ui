@@ -15,11 +15,7 @@ import { DashboardToolbar } from '../components/DashboardToolbar';
 import { useAutomationDashboardView } from '../views/useAutomationDashboardView';
 import { LoadingState } from '@ansible/ansible-ui-framework/components/LoadingState';
 import { Scrollable } from '@ansible/ansible-ui-framework/components/Scrollable';
-import { DashboardAtAGlanceCard } from './DashboardAtAGlanceCard';
-import { DashboardGoalsCard } from './DashboardGoalsCard';
-import {
-  GaDashboardToolbarPrototypeNote,
-} from './PostGaPrototypeNotes';
+import { GaDashboardToolbarPrototypeNote } from './PostGaPrototypeNotes';
 import './postGa.css';
 
 const Divisor = 1662 / 24;
@@ -80,10 +76,6 @@ export function AutomationDashboardPostGADashboardTab() {
       <PageDashboardContext.Provider value={pageDashboardContextValue}>
         <Scrollable marginLeft={20} marginRight={20} marginBottom={16} marginTop={16}>
           <div ref={measureRef} style={{ width: '100%' }}>
-            <div className="post-ga-goals-row">
-              <DashboardGoalsCard />
-              <DashboardAtAGlanceCard />
-            </div>
             <div
               style={{
                 display: 'grid',

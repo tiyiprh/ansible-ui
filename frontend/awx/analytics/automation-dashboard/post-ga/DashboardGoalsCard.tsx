@@ -1,6 +1,4 @@
-import { useGetPageUrl } from '@ansible/ansible-ui-framework';
 import {
-  Button,
   Card,
   CardBody,
   CardHeader,
@@ -12,8 +10,6 @@ import {
 } from '@patternfly/react-core';
 import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { PlatformRoute } from '../../../../../platform/main/PlatformRoutes';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel, MetricValue } from './DashboardMetricText';
 import {
@@ -21,6 +17,7 @@ import {
   getGoalsCardSnapshot,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+import { GoalsConfigureEmptyState } from './GoalsConfigureEmptyState';
 import { COST_SAVINGS_AT_GLANCE, QUARTERLY_GOAL } from './postGaMockData';
 
 function useGoalsCardState() {
@@ -33,11 +30,9 @@ function useGoalsCardState() {
 
 export function DashboardGoalsCard() {
   const { t } = useTranslation();
-  const getPageUrl = useGetPageUrl();
   const { showEmpty, targets } = useGoalsCardState();
-  const settingsEditUrl = `${getPageUrl(PlatformRoute.AutomationDashboardSettings)}/edit`;
 
-  const runsRemaining = QUARTERLY_GOAL.current - targets.quarterlyRunTarget;
+  const runsRemaining = targets.quarterlyRunTarget - QUARTERLY_GOAL.current;
   const savingsVsLastMonth = COST_SAVINGS_AT_GLANCE.thisMonth - COST_SAVINGS_AT_GLANCE.lastMonth;
   const savingsPct =
     COST_SAVINGS_AT_GLANCE.lastMonth > 0
@@ -46,9 +41,6 @@ export function DashboardGoalsCard() {
   const daysLeft = daysRemainingInQuarter();
 
   function getQuarterlyHelperText(): string {
-    if (showEmpty) {
-      return t('— · {{days}} days left in quarter', { days: daysLeft });
-    }
     if (runsRemaining > 0) {
       return t('{{count}} runs to go · {{days}} days left in quarter', {
         count: runsRemaining,
@@ -58,25 +50,21 @@ export function DashboardGoalsCard() {
     return t('Goal reached · {{days}} days left in quarter', { days: daysLeft });
   }
 
-  const quarterlyProgressValue = showEmpty
-    ? 0
-    : Math.round((QUARTERLY_GOAL.current / targets.quarterlyRunTarget) * 100);
+  const quarterlyProgressValue = Math.round(
+    (QUARTERLY_GOAL.current / targets.quarterlyRunTarget) * 100
+  );
 
-  const savingsProgressValue = showEmpty
-    ? 0
-    : Math.min(
-        100,
-        Math.round((COST_SAVINGS_AT_GLANCE.thisMonth / targets.monthlySavingsTarget) * 100)
-      );
+  const savingsProgressValue = Math.min(
+    100,
+    Math.round((COST_SAVINGS_AT_GLANCE.thisMonth / targets.monthlySavingsTarget) * 100)
+  );
 
   const quarterlyHelperText = getQuarterlyHelperText();
 
-  const savingsHelperText = showEmpty
-    ? '—'
-    : t('vs last month: +{{amount}} ({{pct}}%)', {
-        amount: savingsVsLastMonth.toLocaleString(),
-        pct: savingsPct,
-      });
+  const savingsHelperText = t('vs last month: +{{amount}} ({{pct}}%)', {
+    amount: savingsVsLastMonth.toLocaleString(),
+    pct: savingsPct,
+  });
 
   return (
     <Card className="post-ga-goals-row-card">
@@ -89,85 +77,63 @@ export function DashboardGoalsCard() {
         className="post-ga-goals-row-card-body"
         style={{ padding: 'var(--pf-t--global--spacer--md)' }}
       >
-        <Grid hasGutter>
-          <GridItem
-            span={12}
-            style={{
-              paddingBottom: 'var(--pf-t--global--spacer--md)',
-              borderBottom: '1px solid var(--pf-t--global--border--color--default)',
-            }}
-          >
-            <DashboardSectionHeading
-              title={t('Quarterly automation goal')}
-              help={t(
-                'Target number of automation job runs for your organization this quarter. The progress bar shows how many runs you have completed toward that goal.'
-              )}
-            />
-            <div
-              className={`post-ga-goals-metric-stack${showEmpty ? '' : ' post-ga-goals-metric-stack--populated'}`}
-            >
-              <MetricValue>
-                {showEmpty ? (
-                  <>
-                    — {t('of')} — {t('runs')}
-                  </>
-                ) : (
-                  <>
-                    {QUARTERLY_GOAL.current.toLocaleString()} {t('of')}{' '}
-                    {targets.quarterlyRunTarget.toLocaleString()} {t('runs')}
-                  </>
-                )}
-              </MetricValue>
-              <Progress
-                value={quarterlyProgressValue}
-                measureLocation={ProgressMeasureLocation.outside}
-                aria-label={t('Quarterly run goal progress')}
-                aria-hidden={showEmpty}
-              />
-              <MetricLabel>{quarterlyHelperText}</MetricLabel>
-            </div>
-          </GridItem>
-          <GridItem span={12} style={{ paddingTop: 'var(--pf-t--global--spacer--md)' }}>
-            <DashboardSectionHeading
-              title={t('Cost savings this month')}
-              help={t(
-                'Estimated savings from automation instead of manual work this month. Compare your progress to your goal and to last month.'
-              )}
-            />
-            <div
-              className={`post-ga-goals-metric-stack${showEmpty ? '' : ' post-ga-goals-metric-stack--populated'}`}
-            >
-              <MetricValue>
-                {showEmpty ? (
-                  <>
-                    $— {t('of')} $— {t('goal')}
-                  </>
-                ) : (
-                  <>
-                    ${COST_SAVINGS_AT_GLANCE.thisMonth.toLocaleString()} {t('of')} $
-                    {targets.monthlySavingsTarget.toLocaleString()} {t('goal')}
-                  </>
-                )}
-              </MetricValue>
-              <Progress
-                value={savingsProgressValue}
-                measureLocation={ProgressMeasureLocation.outside}
-                aria-label={t('Cost savings goal progress')}
-                aria-hidden={showEmpty}
-              />
-              <MetricLabel>{savingsHelperText}</MetricLabel>
-            </div>
-          </GridItem>
-          <GridItem span={12} style={{ paddingTop: 'var(--pf-t--global--spacer--md)' }}>
-            {showEmpty ? (
-              <Link to={settingsEditUrl}>
-                <Button variant="primary">{t('Configure goals')}</Button>
-              </Link>
-            ) : (
-              <span className="post-ga-goals-card-actions-spacer" aria-hidden="true" />
+        {showEmpty ? (
+          <GoalsConfigureEmptyState
+            title={t('No goals configured')}
+            description={t(
+              'Set quarterly run and monthly savings targets to track progress on this dashboard.'
             )}
-          </GridItem>
-        </Grid>
+          />
+        ) : (
+          <Grid hasGutter>
+            <GridItem
+              span={12}
+              style={{
+                paddingBottom: 'var(--pf-t--global--spacer--md)',
+                borderBottom: '1px solid var(--pf-t--global--border--color--default)',
+              }}
+            >
+              <DashboardSectionHeading
+                title={t('Quarterly automation goal')}
+                help={t(
+                  'Target number of automation job runs for your organization this quarter. The progress bar shows how many runs you have completed toward that goal.'
+                )}
+              />
+              <div className="post-ga-goals-metric-stack post-ga-goals-metric-stack--populated">
+                <MetricValue>
+                  {QUARTERLY_GOAL.current.toLocaleString()} {t('of')}{' '}
+                  {targets.quarterlyRunTarget.toLocaleString()} {t('runs')}
+                </MetricValue>
+                <Progress
+                  value={quarterlyProgressValue}
+                  measureLocation={ProgressMeasureLocation.outside}
+                  aria-label={t('Quarterly run goal progress')}
+                />
+                <MetricLabel>{quarterlyHelperText}</MetricLabel>
+              </div>
+            </GridItem>
+            <GridItem span={12} style={{ paddingTop: 'var(--pf-t--global--spacer--md)' }}>
+              <DashboardSectionHeading
+                title={t('Cost savings this month')}
+                help={t(
+                  'Estimated savings from automation instead of manual work this month. Compare your progress to your goal and to last month.'
+                )}
+              />
+              <div className="post-ga-goals-metric-stack post-ga-goals-metric-stack--populated">
+                <MetricValue>
+                  ${COST_SAVINGS_AT_GLANCE.thisMonth.toLocaleString()} {t('of')} $
+                  {targets.monthlySavingsTarget.toLocaleString()} {t('goal')}
+                </MetricValue>
+                <Progress
+                  value={savingsProgressValue}
+                  measureLocation={ProgressMeasureLocation.outside}
+                  aria-label={t('Cost savings goal progress')}
+                />
+                <MetricLabel>{savingsHelperText}</MetricLabel>
+              </div>
+            </GridItem>
+          </Grid>
+        )}
       </CardBody>
     </Card>
   );

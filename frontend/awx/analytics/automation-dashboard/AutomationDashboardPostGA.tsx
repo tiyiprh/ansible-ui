@@ -36,9 +36,9 @@ export function AutomationDashboardPostGA() {
               dataCy: 'post-ga-dashboard-tab',
             },
             {
-              label: t('Leaderboards'),
+              label: t('Highlights'),
               page: AwxRoute.AutomationDashboardPostGALeaderboards,
-              dataCy: 'post-ga-leaderboards-tab',
+              dataCy: 'post-ga-highlights-tab',
             },
           ]}
         />

@@ -3,6 +3,8 @@ export const ORGANIZATIONS_TOTAL = 15;
 export const TEMPLATES_TOTAL = 15;
 export const QUARTERLY_GOAL = { target: 15000, current: 9840 };
 export const COST_SAVINGS_AT_GLANCE = { thisMonth: 3200, goal: 5000, lastMonth: 2000 };
+export const MATURITY_LEVEL = 3;
+/** @deprecated Use MATURITY_LEVEL — GA UI shows integer level only, not a decimal score */
 export const MATURITY_SCORE = 3.2;
 export const STREAK_PERIOD_DAYS = 30;
 
@@ -83,14 +85,6 @@ export const topProjects = [
   { projectName: 'Project E', totalJobs: 8, org: 'Platform Engineering' },
 ];
 
-export const topHumanHoursReclaimed = [
-  { userName: 'jdoe', hoursSaved: 124.5, org: 'Platform Engineering' },
-  { userName: 'asmith', hoursSaved: 98.2, org: 'Security Operations' },
-  { userName: 'mjones', hoursSaved: 87.0, org: 'Cloud Infrastructure' },
-  { userName: 'kwilliams', hoursSaved: 72.3, org: 'Platform Engineering' },
-  { userName: 'rjohnson', hoursSaved: 65.1, org: 'Application Development' },
-];
-
 export type ManageViewPanel = {
   id: string;
   label: string;
@@ -102,21 +96,9 @@ export const INITIAL_MANAGE_VIEW_PANELS: ManageViewPanel[] = [
   { id: 'templates', label: 'Top 5 templates', visible: true },
   { id: 'projects', label: 'Top 5 projects', visible: true },
   { id: 'users', label: 'Top 5 users', visible: true },
-  { id: 'humanHoursReclaimed', label: 'Human hours reclaimed', visible: true },
-  { id: 'placeholder1', label: 'Placeholder panel 1', visible: true },
-  { id: 'placeholder2', label: 'Placeholder panel 2', visible: true },
-  { id: 'placeholder3', label: 'Placeholder panel 3', visible: true },
-  { id: 'placeholder4', label: 'Placeholder panel 4', visible: true },
-  { id: 'placeholder5', label: 'Placeholder panel 5', visible: true },
 ];
 
-export const LEADERBOARD_PANEL_IDS = [
-  'orgs',
-  'templates',
-  'projects',
-  'users',
-  'humanHoursReclaimed',
-] as const;
+export const LEADERBOARD_PANEL_IDS = ['orgs', 'templates', 'projects', 'users'] as const;
 
 export function formatLastSynced(date: Date): string {
   const diffMs = Date.now() - date.getTime();

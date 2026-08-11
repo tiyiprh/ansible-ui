@@ -1,3 +1,24 @@
+# CHANGES.md archive
+
+Original chronological log — superseded Aug 10, 2026. Living specs: **CHANGES-GA-Dashboard.md** + **CHANGES-Gamification.md**.
+
+---
+
+## [Aug 10, 2026] Post-GA dashboard polish — Highlights tab, empty states, settings defaults
+
+**What:**
+- Rename **Leaderboards** tab label to **Highlights** (`dataCy`: `post-ga-highlights-tab`); route path stays `/leaderboards`.
+- Move **Goals** and **Automation at a glance** cards from Dashboard tab to Highlights tab (pinned, side-by-side `.post-ga-goals-row` below Period/Organization filters and **Manage view**); Dashboard tab keeps GA KPIs + Cost calculation only.
+- When goals are not configured, both cards show framework `EmptyStateCustom` (`variant="sm"`) with primary **Configure goals** → Settings Edit; header preview toggle still switches Empty vs Populated demo data. **Automation adoption** shows **Level N – Name** + description only (no decimal score or star row); mock uses `MATURITY_LEVEL`.
+- **Manage view** modal lists only four Top 5 ranking panels (orgs, templates, projects, users); remove Human hours reclaimed panel and placeholder panels from mock data and UI.
+- Cost toolbar uses a **3-column grid** matching framework `PageFormGrid` breakpoints (`sm=12`, `md/lg/xl=6`, `xl2=4`): PF **NumberInput** for hourly rate and monthly AAP cost with **reserved helper-text space** (`reserveErrorSpace`) so inline validation does not shift the row; **Include automation creation time** **Checkbox** + Help in the third column, vertically centered on the NumberInput control band (padding brackets label + error rows). Per-row **Time taken to manually execute** uses **TextInput** `type="number"` via `DashboardTableInputField` `inputVariant` prop. **Export CSV** stays in the card header only (not in toolbar). **No success toasts** on subscription-cost or template-metadata saves (inline update only; error and refresh-failure toasts remain).
+- **Settings → Dashboard Edit:** goal fields start empty (no silent 15000 / $5000 defaults); **Reset to defaults** clears goals and restores five CMMI-style adoption levels; section description copy under **Automation goals** and **Adoption levels** headers on Edit only; minimum five adoption rows. **Details:** one-line intro under **Adoption levels**; adoption help popover adds “Levels increase as automation becomes more consistent, standardized, and measured.”
+- **PrototypeNote** (`platform/common/PrototypeNote.tsx`): collapsed by default, full-width dashed header with chevron, no emoji pill. Design notes on Settings **Details and Edit**, Highlights (empty states + preview toggle), and Dashboard tab (report actions + cost toolbar). Open PM questions: empty vs pre-populated goal defaults; adoption scorecard inputs and aggregation.
+
+**Why:** Align prototype with UX review — Highlights tab groups summary cards + rankings, empty states guide admins to configure goals, settings defaults reflect org-specific KPIs (not vendor benchmarks), and table vs toolbar inputs follow PatternFly guidance for dense cells vs form fields.
+
+**Where:** `platform/common/PrototypeNote.tsx`; `platform/settings/AutomationDashboardSettingsEdit.tsx`, `AutomationDashboardSettingsDetails.tsx`; `frontend/awx/analytics/automation-dashboard/AutomationDashboardPostGA.tsx`; `post-ga/AutomationDashboardPostGADashboardTab.tsx`, `AutomationDashboardPostGALeaderboardsTab.tsx`, `AutomationDashboardLeaderboards.tsx`, `DashboardGoalsCard.tsx`, `DashboardAtAGlanceCard.tsx`, `GoalsConfigureEmptyState.tsx`, `dashboardSettingsUtils.ts`, `postGaMockData.ts`, `useManagedLeaderboardPanels.tsx`, `PostGaPrototypeNotes.tsx`, `postGa.css`; `components/DashboardTableInputField.tsx`, `DashboardTableToolbarRow.tsx`, `DashboardMainTableCard.tsx`, `types/index.ts`.
+
 ## [Aug 6, 2026] Help popover copy — PatternFly content guidelines (new Jira required)
 
 **What:** Revise `Help` / `PageHeader` `titleHelp` / `PageFormGroup` `labelHelp` popover copy across Post-GA Automation Dashboard and related Settings to follow [PatternFly popover content guidelines](https://www.patternfly.org/components/popover/design-guidelines): 1–3 concise sentences, full sentences with punctuation, second person (“you/your”), no title repetition, no marketing tone.
@@ -20,15 +41,15 @@
 
 ## [Aug 6, 2026] Cost calculation toolbar — NumberInput and 3-column form layout ([AAP-85053](https://issues.redhat.com/browse/AAP-85053))
 
-**What:** Cost calculation card subscription-cost toolbar uses a 3-column `Grid` (`md={4}`):
-- **Hourly rate** and **Monthly AAP cost**: PF [`NumberInput`](https://www.patternfly.org/components/number-input/) with `FormGroup` label above, +/- steppers, existing 600ms debounced save via `putRequest` to `metricsAPI` subscription_costs. Wrap each field in `Form` with `onSubmit` preventDefault (NumberInput uses a nested form).
+**What:** Cost calculation card subscription-cost toolbar uses a 3-column grid matching framework `PageFormGrid` breakpoints (`GridItem sm=12`, `md/lg/xl=6`, `xl2=4`):
+- **Hourly rate** and **Monthly AAP cost**: PF [`NumberInput`](https://www.patternfly.org/components/number-input/) with `FormGroup` label above, +/- steppers, existing 600ms debounced save via `putRequest` to `metricsAPI` subscription_costs. Wrap each field in `Form` with `onSubmit` preventDefault (NumberInput uses a nested form). Pass `reserveErrorSpace` so helper-text row height is fixed when valid.
 - **Include automation creation time**: inline **Checkbox** (label + Help on one line), not upstream Switch.
-- Alignment: `post-ga-cost-toolbar-grid` (`align-items: end`) + `post-ga-cost-checkbox-control` (`min-height: 36px`) so checkbox lines up with NumberInput control band.
+- Alignment: grid `align-items: stretch`; checkbox column pads past label + error rows and vertically centers on the NumberInput band; `reserveErrorSpace` on number fields prevents row-height jump on validation.
 - Card body keeps reduced top padding (`paddingBlockStart: 0`) between Export CSV header and toolbar fields.
 
-**Why:** Match PF number-input pattern for cost fields and align the prototype toolbar layout for Post-GA demo review ([AAP-85053](https://issues.redhat.com/browse/AAP-85053)).
+**Why:** Match PF number-input pattern for cost fields and align toolbar layout with Settings form rhythm for Post-GA demo review ([AAP-85053](https://issues.redhat.com/browse/AAP-85053)).
 
-**Where:** `frontend/awx/analytics/automation-dashboard/components/DashboardTableInputField.tsx` — NumberInput; `components/DashboardTableToolbarRow.tsx` — 3-column grid + checkbox; `post-ga/postGa.css` — alignment classes; `components/DashboardMainTableCard.tsx` — header Export + body padding (from PR #3435).
+**Where:** `frontend/awx/analytics/automation-dashboard/components/DashboardTableInputField.tsx` — NumberInput + `reserveErrorSpace`; `components/DashboardTableToolbarRow.tsx` — 3-column grid + checkbox; `post-ga/postGa.css` — alignment classes; `components/DashboardMainTableCard.tsx` — header Export + body padding (from PR #3435).
 
 ## [Aug 5, 2026] Post GA Automation Dashboard (AAP-85988)
 

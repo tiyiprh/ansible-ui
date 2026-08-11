@@ -145,12 +145,17 @@ export type DashboardTableInputFieldProps = {
   value: number | undefined;
   onChange: (value: number) => void;
   type?: 'number' | 'integer';
+  inputVariant?: 'textInput' | 'numberInput';
+  /** Keeps helper-text row height when no error so toolbar controls do not shift. */
+  reserveErrorSpace?: boolean;
   min?: number;
   max?: number;
   label?: string;
   labelHelp?: string;
   fullWidth?: boolean;
   readOnly?: boolean;
+  /** Tooltip shown when readOnly is true (e.g. permission explanation). */
+  readOnlyReason?: string;
   error?: string;
 };
 

@@ -59,6 +59,13 @@ export function DashboardToolbar(
   >
 ) {
   const { t } = useTranslation();
+  const { setFilterState, filterState, registerClearCallback, clearAllFilters, toolbarFilters } =
+    props;
+
+  const onPersistedReportMissing = useCallback(() => {
+    setFilterState?.(DEFAULT_FILTER_STATE);
+  }, [setFilterState]);
+
   const {
     value,
     version,
@@ -69,10 +76,7 @@ export function DashboardToolbar(
     selectedFilterSet,
     removeFilterSet,
     upsertFilterSet,
-  } = useFilterSetView();
-
-  const { setFilterState, filterState, registerClearCallback, clearAllFilters, toolbarFilters } =
-    props;
+  } = useFilterSetView({ onPersistedReportMissing });
 
   // Register callback to reset dropdown when clearAllFilters is called
   useEffect(() => {
@@ -110,6 +114,13 @@ export function DashboardToolbar(
     },
     [setSelectedFilterSet, setFilterState]
   );
+
+  useEffect(() => {
+    if (!selectedFilterSet?.filters) {
+      return;
+    }
+    setFilterState?.(parseFilterState(selectedFilterSet.filters));
+  }, [selectedFilterSet, setFilterState]);
 
   const onSave = useCallback(
     (newFilterSet: IDashboardFilterSet) => {

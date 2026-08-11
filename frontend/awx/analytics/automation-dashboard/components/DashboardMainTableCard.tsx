@@ -111,13 +111,6 @@ export function DashboardMainTableCard(props: IAutomationDashboardView) {
 
     mainTableView.updateItem({ ...item, ...updatedData });
 
-    alertToaster.addAlert({
-      variant: 'success',
-      title: t('Template metadata for {{templateName}} updated successfully.', { templateName }),
-      timeout: 5000,
-    });
-
-    // Refresh: a failure here does not undo the save.
     try {
       await refresh();
     } catch {

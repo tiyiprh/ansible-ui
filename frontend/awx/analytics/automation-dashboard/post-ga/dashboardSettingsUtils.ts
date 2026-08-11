@@ -10,10 +10,14 @@ export type DashboardGoals = {
 
 export type GoalsPreviewMode = 'empty' | 'configured';
 
-export const DEFAULT_GOALS: DashboardGoals = {
+/** Mock targets for demo populated preview only — not a product default. */
+export const DEMO_GOAL_TARGETS: DashboardGoals = {
   quarterlyRunTarget: QUARTERLY_GOAL.target,
   monthlySavingsTarget: COST_SAVINGS_AT_GLANCE.goal,
 };
+
+/** @deprecated Use DEMO_GOAL_TARGETS for demo preview only */
+export const DEFAULT_GOALS = DEMO_GOAL_TARGETS;
 
 const SETTINGS_CHANGED_EVENT = 'automation-dashboard-settings-changed';
 
@@ -74,6 +78,11 @@ export function saveGoals(goals: DashboardGoals): void {
   notifyDashboardSettingsChanged();
 }
 
+export function clearGoals(): void {
+  localStorage.removeItem(GOALS_STORAGE_KEY);
+  notifyDashboardSettingsChanged();
+}
+
 export function hasConfiguredGoals(): boolean {
   const goals = loadGoals();
   return (
@@ -88,7 +97,10 @@ export function getEffectiveGoalTargets(): DashboardGoals {
   if (saved && saved.quarterlyRunTarget > 0 && saved.monthlySavingsTarget > 0) {
     return saved;
   }
-  return DEFAULT_GOALS;
+  if (isDemoMode() && getGoalsPreviewMode() === 'configured') {
+    return DEMO_GOAL_TARGETS;
+  }
+  return { quarterlyRunTarget: 0, monthlySavingsTarget: 0 };
 }
 
 export function shouldShowEmptyGoalsCard(): boolean {
@@ -110,15 +122,15 @@ export type GoalsCardSnapshot = {
 };
 
 let goalsCardSnapshotCache: GoalsCardSnapshot = {
-  showEmpty: false,
-  targets: DEFAULT_GOALS,
+  showEmpty: true,
+  targets: DEMO_GOAL_TARGETS,
 };
 let goalsCardSnapshotKey = '';
 
 /** Stable snapshot for useSyncExternalStore — must not return a new object reference each call. */
 export function getGoalsCardSnapshot(): GoalsCardSnapshot {
   const showEmpty = shouldShowEmptyGoalsCard();
-  const targets = getEffectiveGoalTargets();
+  const targets = showEmpty ? DEMO_GOAL_TARGETS : getEffectiveGoalTargets();
   const key = `${showEmpty}:${targets.quarterlyRunTarget}:${targets.monthlySavingsTarget}`;
   if (key !== goalsCardSnapshotKey) {
     goalsCardSnapshotKey = key;

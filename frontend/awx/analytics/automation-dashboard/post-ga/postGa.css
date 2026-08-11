@@ -89,11 +89,20 @@
 }
 
 .post-ga-cost-toolbar-grid {
-  align-items: end;
+  align-items: stretch;
+  --post-ga-cost-toolbar-label-offset: calc(
+    var(--pf-t--global--font--line-height--body) +
+      var(--pf-t--global--spacer--gap--text-to-element--default, var(--pf-t--global--spacer--sm))
+  );
+  --post-ga-cost-toolbar-error-offset: calc(
+    var(--pf-t--global--font--line-height--body) + var(--pf-t--global--spacer--sm)
+  );
 }
 
-.post-ga-cost-checkbox-control {
+.post-ga-cost-toolbar-checkbox-cell {
   display: flex;
   align-items: center;
-  min-height: 36px;
+  box-sizing: border-box;
+  padding-block-start: var(--post-ga-cost-toolbar-label-offset);
+  padding-block-end: var(--post-ga-cost-toolbar-error-offset);
 }

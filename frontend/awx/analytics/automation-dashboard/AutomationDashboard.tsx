@@ -213,7 +213,6 @@ export function AutomationDashboard() {
             title={t('Automation Dashboard')}
             titleHelpTitle={t('Automation Dashboard')}
             titleHelp={description}
-            description={description}
           />
           <DashboardToolbar
             toolbarFilters={toolbarFilters}

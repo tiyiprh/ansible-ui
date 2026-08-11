@@ -4,6 +4,7 @@ import { useFetcher } from '@ansible/common-ui/crud/Data';
 import useSWR from 'swr';
 import { AwxItemsResponse } from '../../../common/AwxItemsResponse';
 import { RequestError } from '../../../../common/crud/RequestError';
+import { AUTOMATION_DASHBOARD_REPORT_QUERY_KEY } from '../constants/reportQuery';
 import { getQueryString, hasValidRequiredFilters } from '../utils/queryString';
 
 export type IAutomationDashboardBaseView<T extends { id: number }> = IView & {
@@ -35,7 +36,7 @@ export function useAutomationDashboardBaseView<T extends { id: number }>(options
       filterState: defaultFilters,
     },
     disableQueryString: false,
-    ignoreQueryStringKeys: [],
+    ignoreQueryStringKeys: [AUTOMATION_DASHBOARD_REPORT_QUERY_KEY],
   });
   const itemCountRef = useRef<{ itemCount: number | undefined }>({ itemCount: undefined });
 

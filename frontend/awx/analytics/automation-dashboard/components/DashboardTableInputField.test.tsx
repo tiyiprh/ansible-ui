@@ -190,6 +190,23 @@ describe('DashboardTableInputField', () => {
   });
 
   describe('UI', () => {
+    test('should render NumberInput when inputVariant is numberInput', () => {
+      const { container } = renderInputField({ inputVariant: 'numberInput', value: 5 });
+      expect(container.querySelector('.pf-v6-c-number-input')).toBeInTheDocument();
+    });
+
+    test('should render plain TextInput by default', () => {
+      const { container } = renderInputField({ value: 5 });
+      expect(container.querySelector('.pf-v6-c-number-input')).not.toBeInTheDocument();
+      expect(container.querySelector('input[type="number"]')).toBeInTheDocument();
+    });
+
+    test('should reserve helper-text space when reserveErrorSpace is true and field is valid', () => {
+      const { container } = renderInputField({ value: 5, reserveErrorSpace: true });
+      expect(container.querySelector('.pf-v6-c-form__helper-text')).toBeInTheDocument();
+      expect(container.querySelector('.pf-v6-c-helper-text__item--error')).not.toBeInTheDocument();
+    });
+
     test('should render help icon when labelHelp is provided', () => {
       const { container } = renderInputField({ labelHelp: 'Helpful hint' });
       expect(container.querySelector('button[type="button"]')).toBeInTheDocument();

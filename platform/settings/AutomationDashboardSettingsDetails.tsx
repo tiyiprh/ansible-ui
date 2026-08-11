@@ -10,7 +10,7 @@ import {
 import { PageFormGroup } from '@ansible/ansible-ui-framework/PageForm/Inputs/PageFormGroup';
 import { PageFormGrid } from '@ansible/ansible-ui-framework/PageForm/PageForm';
 import { PageFormSection } from '@ansible/ansible-ui-framework/PageForm/Utils/PageFormSection';
-import { ButtonVariant, Form, Grid, GridItem, PageSection } from '@patternfly/react-core';
+import { ButtonVariant, Content, Form, Grid, GridItem, PageSection } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { Fragment, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ export function AutomationDashboardSettingsDetails() {
   const levels = loadMaturityLevels();
 
   const description = t(
-    'Configure goals and adoption levels for your Automation Dashboard. These values appear on the Dashboard and Leaderboards tabs.'
+    'Configure goals and adoption levels for your Automation Dashboard. These values appear on the Dashboard and Highlights tabs.'
   );
 
   const actions = useMemo<IPageAction<object>[]>(
@@ -93,6 +93,18 @@ export function AutomationDashboardSettingsDetails() {
                 </PageFormGroup>
               </PageFormSection>
               <PageFormSection title={t('Adoption levels')} singleColumn>
+                <Content
+                  component="p"
+                  style={{
+                    marginBottom: 'var(--pf-t--global--spacer--md)',
+                    gridColumn: '1 / -1',
+                    opacity: 0.8,
+                  }}
+                >
+                  {t(
+                    'Five levels from initial automation to organization-wide practice. Customize names and descriptions on Edit.'
+                  )}
+                </Content>
                 <Grid hasGutter>
                   {levels.map((level, index) => (
                     <Fragment key={`${level.name}-${index}`}>

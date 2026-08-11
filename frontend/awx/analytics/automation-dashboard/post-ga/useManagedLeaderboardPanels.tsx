@@ -11,7 +11,7 @@ export function useManagedLeaderboardPanels() {
   const columns = useMemo(
     () => [
       {
-        header: t('Leaderboard panels'),
+        header: t('Ranking panels'),
         cell: (item: LeaderboardPanel) => item.name,
       },
     ],
@@ -29,10 +29,10 @@ export function useManagedLeaderboardPanels() {
 
   const { openManageItems: openManageLeaderboards, managedItems: managedPanels } =
     useManageItems<LeaderboardPanel>({
-      id: 'post-ga-leaderboards',
+      id: 'post-ga-highlights',
       title: t('Manage view'),
       description: t(
-        'Hide or show the panels you want to see on the leaderboards page by selecting or unselecting, respectively. The panels are ordered from top to bottom on the list. Use the draggable icon :: to re-order your view.'
+        'Hide or show the ranking panels you want on the Highlights tab. Goals and Automation at a glance stay pinned at the top. Use the draggable icon to re-order panels.'
       ),
       items: resources,
       keyFn: (item) => item.id,

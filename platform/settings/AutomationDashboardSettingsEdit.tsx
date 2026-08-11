@@ -2,6 +2,7 @@ import { PageFormTextInput, PageHeader, PageLayout } from '@ansible/ansible-ui-f
 import { PageFormSection } from '@ansible/ansible-ui-framework/PageForm/Utils/PageFormSection';
 import {
   Button,
+  Content,
   FormGroup,
   FormHelperText,
   HelperText,
@@ -14,8 +15,7 @@ import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  DEFAULT_GOALS,
-  getEffectiveGoalTargets,
+  clearGoals,
   loadGoals,
   saveGoals,
 } from '../../frontend/awx/analytics/automation-dashboard/post-ga/dashboardSettingsUtils';
@@ -26,11 +26,12 @@ import {
   saveMaturityLevels,
 } from '../../frontend/awx/analytics/automation-dashboard/post-ga/maturityUtils';
 import '../../frontend/awx/analytics/automation-dashboard/post-ga/postGa.css';
+import { AutomationDashboardSettingsPrototypeNote } from '../../frontend/awx/analytics/automation-dashboard/post-ga/PostGaPrototypeNotes';
 import { PlatformPageForm } from '../common/PlatformPageForm';
 
 type AutomationDashboardSettingsForm = {
-  quarterlyRunTarget: number;
-  monthlySavingsTarget: number;
+  quarterlyRunTarget: number | '';
+  monthlySavingsTarget: number | '';
   adoptionLevels: MaturityLevel[];
 };
 
@@ -50,6 +51,17 @@ function AdoptionLevelsInputs() {
 
   return (
     <PageFormSection title={t('Adoption levels')} singleColumn>
+      <Content
+        component="p"
+        style={{
+          marginBottom: 'var(--pf-t--global--spacer--md)',
+          gridColumn: '1 / -1',
+        }}
+      >
+        {t(
+          'Define the maturity levels used to score automation adoption on the Highlights tab. The default five levels follow a common industry maturity model; you can customize names and descriptions.'
+        )}
+      </Content>
       {fields.map((field, index) => (
         <div
           key={field.id}
@@ -110,7 +122,7 @@ function AdoptionLevelsInputs() {
               type="button"
               variant="plain"
               aria-label={t('Delete row')}
-              isDisabled={fields.length <= 1}
+              isDisabled={fields.length <= 5}
               onClick={() => remove(index)}
             />
           </div>
@@ -124,11 +136,10 @@ export function AutomationDashboardSettingsEdit() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const savedGoals = loadGoals();
-  const goalDefaults = savedGoals ?? getEffectiveGoalTargets();
 
   const defaultValue: AutomationDashboardSettingsForm = {
-    quarterlyRunTarget: goalDefaults.quarterlyRunTarget,
-    monthlySavingsTarget: goalDefaults.monthlySavingsTarget,
+    quarterlyRunTarget: savedGoals?.quarterlyRunTarget ?? '',
+    monthlySavingsTarget: savedGoals?.monthlySavingsTarget ?? '',
     adoptionLevels: loadMaturityLevels().map((level) => ({ ...level })),
   };
 
@@ -164,21 +175,37 @@ export function AutomationDashboardSettingsEdit() {
             type="button"
             onClick={(e) => {
               e.preventDefault();
+              clearGoals();
               saveMaturityLevels(DEFAULT_LEVELS.map((level) => ({ ...level })));
-              saveGoals({ ...DEFAULT_GOALS });
-              void navigate('.', { replace: true });
+              void navigate('..', { replace: true });
             }}
           >
             {t('Reset to defaults')}
           </Button>
         }
       >
+        <div style={{ gridColumn: '1 / -1' }}>
+          <AutomationDashboardSettingsPrototypeNote />
+        </div>
         <PageFormSection title={t('Automation goals')}>
+          <Content
+            component="p"
+            style={{
+              marginBottom: 'var(--pf-t--global--spacer--md)',
+              gridColumn: '1 / -1',
+            }}
+          >
+            {t(
+              'Set organization-specific targets for job run volume and cost savings. These values appear on the Highlights tab once configured. Many teams base targets on prior-quarter volume or savings from the Cost calculation section.'
+            )}
+          </Content>
           <PageFormTextInput<AutomationDashboardSettingsForm>
             name="quarterlyRunTarget"
             type="number"
             label={t('Quarterly run target')}
-            labelHelp={t('Target number of automation job runs for your organization this quarter.')}
+            labelHelp={t(
+              'Enter your organization’s target job runs for the current quarter. Many teams start from prior-quarter volume or a 10–20% growth target.'
+            )}
             placeholder={t('Enter target')}
             isRequired
             min={1}
@@ -187,7 +214,9 @@ export function AutomationDashboardSettingsEdit() {
             name="monthlySavingsTarget"
             type="number"
             label={t('Monthly savings target')}
-            labelHelp={t('Target monthly cost savings from automation in USD.')}
+            labelHelp={t(
+              'Enter your target monthly savings in USD. Base this on your labor rate and automation volume from the Cost calculation section.'
+            )}
             placeholder={t('Enter target')}
             isRequired
             min={1}

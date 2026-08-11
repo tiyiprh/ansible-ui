@@ -1,9 +1,10 @@
 import { Checkbox, Grid, GridItem } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
-import { Help } from '../../../../../framework';
+import { Help, usePageAlertToaster } from '../../../../../framework';
 import { DashboardTableInputField } from './DashboardTableInputField';
+import { DisabledControlTooltip } from './DisabledControlTooltip';
+import { SUBSCRIPTION_COSTS_DISABLED_TOOLTIP } from '../constants/reportQuery';
 import { DashboardTableToolbarProps, ISubscriptionCosts } from '../types';
-import { usePageAlertToaster } from '../../../../../framework';
 import { useState } from 'react';
 import { awxErrorAdapter } from '../../../common/adapters/awxErrorAdapter';
 import { metricsAPI } from '../../../common/api/metrics-utils';
@@ -13,7 +14,7 @@ import { useAwxActiveUser } from '../../../common/useAwxActiveUser';
 const CHECKBOX_ID = 'checkbox-time-taken-automation';
 const AUTOMATION_CREATION_TIME_LABEL = 'Include automation creation time';
 
-export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
+export function DashboardTableToolbarRow(props: Readonly<DashboardTableToolbarProps>) {
   const { costState, setCostState, refresh } = props;
   const { t } = useTranslation();
   const alertToaster = usePageAlertToaster();
@@ -24,6 +25,9 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
   );
 
   const controlsDisabled = !costState || !activeAwxUser?.is_superuser;
+  const controlsDisabledReason = controlsDisabled
+    ? t(SUBSCRIPTION_COSTS_DISABLED_TOOLTIP)
+    : undefined;
 
   const toolbarChangeHandler = async <K extends keyof ISubscriptionCosts>(
     value: ISubscriptionCosts[K],
@@ -73,14 +77,7 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
       return;
     }
 
-    // PUT succeeded — show success before attempting the refresh.
-    alertToaster.addAlert({
-      variant: 'success',
-      title: t('Subscription costs updated successfully.'),
-      timeout: 5000,
-    });
-
-    // Refresh: a failure here does not undo the save.
+    // PUT succeeded — inline field update is sufficient; no success toast.
     try {
       await refresh();
     } catch {
@@ -93,9 +90,11 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
   };
 
   return (
-    <Grid hasGutter md={4} className="post-ga-cost-toolbar-grid">
-      <GridItem>
+    <Grid hasGutter className="post-ga-cost-toolbar-grid">
+      <GridItem sm={12} md={6} lg={6} xl={6} xl2={4}>
         <DashboardTableInputField
+          inputVariant="numberInput"
+          reserveErrorSpace
           label={t('Hourly rate for manually running the job ({{currency}})', {
             currency: '$',
           })}
@@ -110,11 +109,14 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
             void toolbarChangeHandler(value, 'engineer_avg_hourly_rate');
           }}
           readOnly={controlsDisabled}
+          readOnlyReason={controlsDisabledReason}
           error={errors?.engineer_avg_hourly_rate}
         />
       </GridItem>
-      <GridItem>
+      <GridItem sm={12} md={6} lg={6} xl={6} xl2={4}>
         <DashboardTableInputField
+          inputVariant="numberInput"
+          reserveErrorSpace
           label={t('Monthly AAP cost ({{currency}})', { currency: '$' })}
           labelHelp={t(
             'Monthly cost of running the Ansible Automation Platform. This value includes license, labor and infrastructure costs to run AAP. It is used to calculate the automation savings'
@@ -127,11 +129,16 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
             void toolbarChangeHandler(value, 'monthly_subscription_cost');
           }}
           readOnly={controlsDisabled}
+          readOnlyReason={controlsDisabledReason}
           error={errors?.monthly_subscription_cost}
         />
       </GridItem>
-      <GridItem>
-        <div className="post-ga-cost-checkbox-control">
+      <GridItem sm={12} md={6} lg={6} xl={6} xl2={4} className="post-ga-cost-toolbar-checkbox-cell">
+        <DisabledControlTooltip
+          isDisabled={controlsDisabled}
+          content={controlsDisabledReason}
+          display="inline-block"
+        >
           <Checkbox
             id={CHECKBOX_ID}
             data-testid={CHECKBOX_ID}
@@ -153,7 +160,7 @@ export function DashboardTableToolbarRow(props: DashboardTableToolbarProps) {
             }}
             isDisabled={controlsDisabled}
           />
-        </div>
+        </DisabledControlTooltip>
       </GridItem>
     </Grid>
   );

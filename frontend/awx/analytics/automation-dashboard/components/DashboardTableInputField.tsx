@@ -5,14 +5,16 @@ import {
   HelperText,
   HelperTextItem,
   NumberInput,
+  TextInput,
 } from '@patternfly/react-core';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { DashboardTableInputFieldProps } from '../types';
 import { Help } from '@ansible/ansible-ui-framework';
 import { useTranslation } from 'react-i18next';
 import debounce from 'debounce';
+import { DisabledControlTooltip } from './DisabledControlTooltip';
 
-export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
+export function DashboardTableInputField(props: Readonly<DashboardTableInputFieldProps>) {
   const {
     id,
     min,
@@ -21,7 +23,10 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
     labelHelp,
     fullWidth,
     type,
+    inputVariant = 'textInput',
     readOnly,
+    readOnlyReason,
+    reserveErrorSpace,
     error: errorMsg,
     onChange,
   } = props;
@@ -47,9 +52,6 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
   useEffect(() => () => setValueDebounced.clear(), [setValueDebounced]);
 
   const onChangeHandler = (newValue: string) => {
-    // Cancel any previously scheduled save by replacing it with undefined.
-    // If the debounce fires with undefined, onChange is not called (see setValueDebounced above).
-    // A new valid save is rescheduled at the bottom if validation passes.
     setValueDebounced(undefined);
     setError(null);
     setValue(newValue);
@@ -100,6 +102,47 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
     onChangeHandler(String(next));
   };
 
+  const inputControl =
+    inputVariant === 'numberInput' ? (
+      <NumberInput
+        value={numberInputValue}
+        min={min}
+        max={max}
+        isDisabled={readOnly === true}
+        validated={error || errorMsg ? 'error' : 'default'}
+        onChange={(event) => {
+          onChangeHandler((event.target as HTMLInputElement).value);
+        }}
+        onPlus={handlePlus}
+        onMinus={handleMinus}
+        inputName={id}
+        inputAriaLabel={label ?? id}
+        inputProps={{
+          id,
+          'data-testid': id,
+          autoComplete: 'off',
+          'aria-describedby': id ? `${id}-form-group` : undefined,
+        }}
+      />
+    ) : (
+      <TextInput
+        id={id}
+        data-testid={id}
+        type="number"
+        value={value === undefined ? '' : String(value)}
+        min={min}
+        max={max}
+        isDisabled={readOnly === true}
+        validated={error || errorMsg ? 'error' : 'default'}
+        autoComplete="off"
+        aria-describedby={id ? `${id}-form-group` : undefined}
+        aria-label={label ?? id}
+        onChange={(_event, textValue) => {
+          onChangeHandler(textValue);
+        }}
+      />
+    );
+
   return (
     <Form onSubmit={(e) => e.preventDefault()}>
       <FormGroup
@@ -109,31 +152,23 @@ export function DashboardTableInputField(props: DashboardTableInputFieldProps) {
         style={{ gridColumn: fullWidth ? 'span 24' : undefined }}
         aria-invalid={error ? 'true' : 'false'}
       >
-        <NumberInput
-          value={numberInputValue}
-          min={min}
-          max={max}
+        <DisabledControlTooltip
           isDisabled={readOnly === true}
-          validated={error || errorMsg ? 'error' : 'default'}
-          onChange={(event) => {
-            onChangeHandler((event.target as HTMLInputElement).value);
-          }}
-          onPlus={handlePlus}
-          onMinus={handleMinus}
-          inputName={id}
-          inputAriaLabel={label}
-          inputProps={{
-            id,
-            'data-testid': id,
-            autoComplete: 'off',
-            'aria-describedby': id ? `${id}-form-group` : undefined,
-          }}
-        />
-        {(error || errorMsg) && (
+          content={readOnlyReason}
+        >
+          {inputControl}
+        </DisabledControlTooltip>
+        {(error || errorMsg || reserveErrorSpace) && (
           <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
-            </HelperText>
+            {error || errorMsg ? (
+              <HelperText>
+                <HelperTextItem variant={'error'}>{error ?? errorMsg}</HelperTextItem>
+              </HelperText>
+            ) : (
+              <HelperText aria-hidden="true">
+                <HelperTextItem>&nbsp;</HelperTextItem>
+              </HelperText>
+            )}
           </FormHelperText>
         )}
       </FormGroup>
