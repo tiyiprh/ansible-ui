@@ -1,53 +1,64 @@
-import { Tooltip } from '@patternfly/react-core';
+import { Button, Tooltip } from '@patternfly/react-core';
 import {
-  TrophyIcon,
+  AngleLeftIcon,
+  AngleRightIcon,
   ArrowUpIcon,
-  StarIcon,
+  CheckCircleIcon,
+  ClusterIcon,
+  FireIcon,
+  ShareAltIcon,
+  SyncAltIcon,
+  TrophyIcon,
 } from '@patternfly/react-icons';
+import StarIcon from '@patternfly/react-icons/dist/esm/icons/star-icon';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
-import { useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getGoalsPreviewMode,
   isDemoMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+import { usePostGaHighlightsFilters } from './PostGaHighlightsFilterContext';
 import {
-  HIGHLIGHTS,
+  computeStreakLength,
+  getScaledHighlights,
+  getStreakDaysForFilter,
+  scaleByHighlightsFilters,
+} from './postGaHighlightsFilterUtils';
+import {
+  ACHIEVEMENT_METRICS,
   ORGANIZATIONS_TOTAL,
   QUARTERLY_GOAL,
-  STREAK_HEAT_STRIP_DAYS,
   topOrganizations,
 } from './postGaMockData';
 
-function FlameIconSmall() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 16 16"
-      width="1em"
-      height="1em"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M8 0C5.8 3.2 3 5.6 3 9a5 5 0 0 0 10 0c0-3.4-2.8-5.8-5-9ZM6.5 12a2 2 0 0 1-1-1.7c0-1.3 1-2.3 2.5-3.8.8.8 2.5 2.5 2.5 3.8A2 2 0 0 1 8.5 12Z" />
-    </svg>
-  );
-}
-
 type BadgeTier = 'locked' | 'bronze' | 'silver' | 'gold';
 
-const TIER_CONFIG: Record<BadgeTier, { stars: number; borderStyle: string; opacity: number }> = {
-  locked: { stars: 0, borderStyle: '2px dashed var(--pf-t--global--border--color--default)', opacity: 0.5 },
-  bronze: { stars: 1, borderStyle: '2px solid', opacity: 1 },
-  silver: { stars: 2, borderStyle: '2px solid', opacity: 1 },
-  gold: { stars: 3, borderStyle: '3px solid', opacity: 1 },
+const TIER_CONFIG: Record<BadgeTier, { stars: number; opacity: number }> = {
+  locked: { stars: 0, opacity: 0.5 },
+  bronze: { stars: 1, opacity: 1 },
+  silver: { stars: 2, opacity: 1 },
+  gold: { stars: 3, opacity: 1 },
 };
 
-const TIER_COLORS: Record<Exclude<BadgeTier, 'locked'>, string> = {
-  bronze: '#cd7f32',
-  silver: '#a0a0a0',
-  gold: '#c9b037',
+const TIER_DOT_CLASS: Record<Exclude<BadgeTier, 'locked'>, string> = {
+  gold: 'post-ga-tier--gold',
+  silver: 'post-ga-tier--silver',
+  bronze: 'post-ga-tier--bronze',
+};
+
+const TIER_SORT_RANK: Record<BadgeTier, number> = {
+  gold: 3,
+  silver: 2,
+  bronze: 1,
+  locked: 0,
+};
+
+type TierRequirements = {
+  bronze: string;
+  silver: string;
+  gold: string;
 };
 
 type BadgeDef = {
@@ -56,9 +67,13 @@ type BadgeDef = {
   icon: React.ReactNode;
   tier: BadgeTier;
   description: string;
+  tierRequirements: TierRequirements;
   nextTierHint: string;
-  color: string;
 };
+
+function buildTierRequirements(tiers: TierRequirements): TierRequirements {
+  return tiers;
+}
 
 function computeTier(value: number, thresholds: [number, number, number]): BadgeTier {
   if (value >= thresholds[2]) return 'gold';
@@ -67,23 +82,93 @@ function computeTier(value: number, thresholds: [number, number, number]): Badge
   return 'locked';
 }
 
-function tierColor(tier: BadgeTier, baseColor: string): string {
-  if (tier === 'locked') return baseColor;
-  return TIER_COLORS[tier];
+function computeTierMax(value: number, maxThresholds: [number, number, number]): BadgeTier {
+  if (value <= maxThresholds[2]) return 'gold';
+  if (value <= maxThresholds[1]) return 'silver';
+  if (value <= maxThresholds[0]) return 'bronze';
+  return 'locked';
 }
 
-function tierLabel(tier: BadgeTier): string {
-  if (tier === 'locked') return 'Locked';
-  return tier.charAt(0).toUpperCase() + tier.slice(1);
+function sortBadgesEarnedFirst(badges: BadgeDef[]): BadgeDef[] {
+  return badges
+    .map((badge, index) => ({ badge, index }))
+    .sort((a, b) => {
+      const aEarned = a.badge.tier !== 'locked';
+      const bEarned = b.badge.tier !== 'locked';
+      if (aEarned !== bEarned) return aEarned ? -1 : 1;
+      if (aEarned && bEarned) {
+        const tierDiff = TIER_SORT_RANK[b.badge.tier] - TIER_SORT_RANK[a.badge.tier];
+        if (tierDiff !== 0) return tierDiff;
+      }
+      return a.index - b.index;
+    })
+    .map(({ badge }) => badge);
 }
 
-function nextThresholdLabel(
-  tier: BadgeTier,
-  labels: { bronze: string; silver: string; gold: string }
-): string {
-  if (tier === 'locked') return labels.bronze;
-  if (tier === 'bronze') return labels.silver;
-  return labels.gold;
+function buildRecoveryBadge(
+  t: (s: string, opts?: Record<string, unknown>) => string,
+  currentRate: number,
+  previousRate: number
+): BadgeDef {
+  const priorWeekWasBad = previousRate < 90;
+  const improved = currentRate > previousRate;
+  const tier = priorWeekWasBad && improved ? computeTier(currentRate, [90, 95, 98]) : 'locked';
+
+  const description = t(
+    'Week-over-week improvement in platform job success rate after a sub-90% week.'
+  );
+
+  const tierRequirements = buildTierRequirements({
+    bronze: t('Recover to at least 90% success rate'),
+    silver: t('Recover to at least 95% success rate'),
+    gold: t('Recover to at least 98% success rate'),
+  });
+
+  const statusLine = priorWeekWasBad
+    ? t('Currently: {{current}}% success rate (was {{previous}}% last week)', {
+        current: currentRate,
+        previous: previousRate,
+      })
+    : t('Currently: {{current}}% success rate — no recovery needed this week', {
+        current: currentRate,
+      });
+
+  return {
+    id: 'failure-recovery',
+    label: t('Recovery'),
+    icon: <SyncAltIcon />,
+    tier,
+    description,
+    tierRequirements,
+    nextTierHint: statusLine,
+  };
+}
+
+function buildCleanWeekBadge(
+  t: (s: string, opts?: Record<string, unknown>) => string,
+  consecutiveDays: number
+): BadgeDef {
+  const tier = computeTier(consecutiveDays, [3, 7, 14]);
+
+  const description = t('Consecutive days with no failed or errored jobs platform-wide.');
+
+  const tierRequirements = buildTierRequirements({
+    bronze: t('3 consecutive clean days'),
+    silver: t('7 consecutive clean days'),
+    gold: t('14+ consecutive clean days'),
+  });
+
+  const statusLine = t('Currently: {{count}} consecutive clean days', { count: consecutiveDays });
+
+  return {
+    id: 'clean-week',
+    label: t('Clean week'),
+    icon: <CheckCircleIcon />,
+    tier,
+    description,
+    tierRequirements,
+    nextTierHint: statusLine,
+  };
 }
 
 function buildRunsBadge(
@@ -91,38 +176,27 @@ function buildRunsBadge(
   totalRuns: number
 ): BadgeDef {
   const tier = computeTier(totalRuns, [10000, 50000, 100000]);
-  const thresholdLabels = { bronze: '10K', silver: '50K', gold: '100K' };
 
-  let description: string;
-  if (tier === 'gold') {
-    description = t('Max tier! 100,000+ total automation runs.');
-  } else {
-    description = t('{{tier}} tier — {{current}} runs toward {{next}} goal.', {
-      tier: tierLabel(tier),
-      current: totalRuns.toLocaleString(),
-      next: nextThresholdLabel(tier, thresholdLabels),
-    });
-  }
+  const description = t('Tracks total automation job runs across your platform.');
 
-  let nextTierHint: string;
-  if (tier === 'gold') {
-    nextTierHint = t('Max tier achieved!');
-  } else if (tier === 'silver') {
-    nextTierHint = t('Reach 100,000 runs for Gold ({{current}} / 100,000).', { current: totalRuns.toLocaleString() });
-  } else if (tier === 'bronze') {
-    nextTierHint = t('Reach 50,000 runs for Silver ({{current}} / 50,000).', { current: totalRuns.toLocaleString() });
-  } else {
-    nextTierHint = t('Reach 10,000 total automation runs ({{current}} / 10,000).', { current: totalRuns.toLocaleString() });
-  }
+  const tierRequirements = buildTierRequirements({
+    bronze: t('10,000 total job runs'),
+    silver: t('50,000 total job runs'),
+    gold: t('100,000+ total job runs'),
+  });
+
+  const statusLine = t('Currently: {{count}} total job runs', {
+    count: totalRuns.toLocaleString(),
+  });
 
   return {
     id: '10k-club',
-    label: t('10K Club'),
+    label: t('10K Runs'),
     icon: <TrophyIcon />,
     tier,
     description,
-    nextTierHint,
-    color: tierColor(tier, '#c9b037'),
+    tierRequirements,
+    nextTierHint: statusLine,
   };
 }
 
@@ -131,82 +205,60 @@ function buildStreakBadge(
   streakLen: number
 ): BadgeDef {
   const tier = computeTier(streakLen, [7, 14, 30]);
-  const thresholdLabels = { bronze: '7', silver: '14', gold: '30' };
 
-  let description: string;
-  if (tier === 'gold') {
-    description = t('Max tier! 30+ day success streak.');
-  } else {
-    description = t('{{tier}} tier — {{count}}-day streak toward {{next}}-day goal.', {
-      tier: tierLabel(tier),
-      count: streakLen,
-      next: nextThresholdLabel(tier, thresholdLabels),
-    });
-  }
+  const description = t('Consecutive days with at least one successful job run.');
 
-  let nextTierHint: string;
-  if (tier === 'gold') {
-    nextTierHint = t('Max tier achieved!');
-  } else if (tier === 'silver') {
-    nextTierHint = t('Reach a 30-day streak for Gold (current: {{count}} days).', { count: streakLen });
-  } else if (tier === 'bronze') {
-    nextTierHint = t('Reach a 14-day streak for Silver (current: {{count}} days).', { count: streakLen });
-  } else {
-    nextTierHint = t('Maintain a 7-day success streak (current: {{count}} days).', { count: streakLen });
-  }
+  const tierRequirements = buildTierRequirements({
+    bronze: t('7 consecutive days'),
+    silver: t('14 consecutive days'),
+    gold: t('30+ consecutive days'),
+  });
+
+  const statusLine = t('Currently: {{count}}-day streak', { count: streakLen });
 
   return {
     id: 'streak-master',
-    label: t('Streak Master'),
-    icon: <FlameIconSmall />,
+    label: t('Daily Streak'),
+    icon: <FireIcon />,
     tier,
     description,
-    nextTierHint,
-    color: tierColor(tier, '#e65100'),
+    tierRequirements,
+    nextTierHint: statusLine,
   };
 }
 
 function buildRisingStarBadge(
   t: (s: string, opts?: Record<string, unknown>) => string,
-  yourRank: number,
-  isRisingStar: boolean
+  trendingCount: number,
+  totalOrgs: number
 ): BadgeDef {
-  let tier: BadgeTier = 'locked';
-  if (isRisingStar && yourRank <= 1) tier = 'gold';
-  else if (isRisingStar && yourRank <= 3) tier = 'silver';
-  else if (isRisingStar) tier = 'bronze';
+  const trendingPct = totalOrgs > 0 ? Math.round((trendingCount / totalOrgs) * 100) : 0;
+  const tier = computeTier(trendingPct, [25, 50, 75]);
 
-  let description: string;
-  if (tier === 'gold') {
-    description = t('Max tier! #1 and trending up.');
-  } else if (tier !== 'locked') {
-    description = t('{{tier}} tier — trending up, ranked #{{rank}}.', {
-      tier: tierLabel(tier),
-      rank: yourRank,
-    });
-  } else {
-    description = t('Your organization needs an upward trend in the leaderboard.');
-  }
+  const description = t(
+    'Share of organizations on your platform with week-over-week job run growth.'
+  );
 
-  let nextTierHint: string;
-  if (tier === 'gold') {
-    nextTierHint = t('Max tier achieved!');
-  } else if (tier === 'silver') {
-    nextTierHint = t('Reach #1 while trending up for Gold.');
-  } else if (tier === 'bronze') {
-    nextTierHint = t('Reach top 3 while trending up for Silver.');
-  } else {
-    nextTierHint = t('Your organization needs an upward trend to unlock.');
-  }
+  const tierRequirements = buildTierRequirements({
+    bronze: t('At least 25% of orgs trending up'),
+    silver: t('At least 50% of orgs trending up'),
+    gold: t('At least 75% of orgs trending up'),
+  });
+
+  const statusLine = t('Currently: {{count}} of {{total}} organizations trending up ({{pct}}%)', {
+    count: trendingCount,
+    total: totalOrgs,
+    pct: trendingPct,
+  });
 
   return {
     id: 'rising-star',
-    label: t('Rising Star'),
+    label: t('Trending Up'),
     icon: <ArrowUpIcon />,
     tier,
     description,
-    nextTierHint,
-    color: tierColor(tier, '#1b5e20'),
+    tierRequirements,
+    nextTierHint: statusLine,
   };
 }
 
@@ -216,120 +268,172 @@ function buildFleetBadge(
 ): BadgeDef {
   const tier = computeTier(orgPct, [50, 80, 100]);
 
-  let description: string;
-  if (tier === 'gold') {
-    description = t('Max tier! 100% of organizations are actively automating.');
-  } else {
-    description = t('{{tier}} tier — {{pct}}% of organizations active.', {
-      tier: tierLabel(tier),
-      pct: orgPct,
-    });
-  }
+  const description = t('Percentage of organizations with at least one automation run.');
 
-  let nextTierHint: string;
-  if (tier === 'gold') {
-    nextTierHint = t('Max tier achieved!');
-  } else if (tier === 'silver') {
-    nextTierHint = t('Get 100% of organizations active for Gold ({{pct}}% currently).', { pct: orgPct });
-  } else if (tier === 'bronze') {
-    nextTierHint = t('Get 80% of organizations active for Silver ({{pct}}% currently).', { pct: orgPct });
-  } else {
-    nextTierHint = t('Get 50% of organizations actively automating ({{pct}}% currently).', { pct: orgPct });
-  }
+  const tierRequirements = buildTierRequirements({
+    bronze: t('50% of orgs active'),
+    silver: t('80% of orgs active'),
+    gold: t('100% of orgs active'),
+  });
+
+  const statusLine = t('Currently: {{pct}}% of organizations active', { pct: orgPct });
 
   return {
     id: 'full-fleet',
-    label: t('Full Fleet'),
+    label: t('Org Adoption'),
     icon: <CubesIcon />,
     tier,
     description,
-    nextTierHint,
-    color: tierColor(tier, '#0d47a1'),
+    tierRequirements,
+    nextTierHint: statusLine,
   };
 }
 
-function buildAutomatorBadge(
+function buildBalancedPlatformBadge(
   t: (s: string, opts?: Record<string, unknown>) => string,
-  yourRank: number
+  largestOrgSharePct: number,
+  largestOrgName: string
 ): BadgeDef {
-  let tier: BadgeTier = 'locked';
-  if (yourRank <= 1) tier = 'gold';
-  else if (yourRank <= 3) tier = 'silver';
-  else if (yourRank <= 5) tier = 'bronze';
+  const tier = computeTierMax(largestOrgSharePct, [50, 35, 25]);
 
-  let description: string;
-  if (tier === 'gold') {
-    description = t('Max tier! Your organization holds the #1 position.');
-  } else if (tier !== 'locked') {
-    description = t('{{tier}} tier — currently ranked #{{rank}}.', {
-      tier: tierLabel(tier),
-      rank: yourRank,
-    });
-  } else {
-    description = t('Reach top 5 in the leaderboard to unlock.');
-  }
+  const description = t(
+    'No single organization accounts for too large a share of platform job runs.'
+  );
 
-  let nextTierHint: string;
-  if (tier === 'gold') {
-    nextTierHint = t('Max tier achieved!');
-  } else if (tier === 'silver') {
-    nextTierHint = t('Reach #1 for Gold (currently #{{rank}}).', { rank: yourRank });
-  } else if (tier === 'bronze') {
-    nextTierHint = t('Reach top 3 for Silver (currently #{{rank}}).', { rank: yourRank });
-  } else {
-    nextTierHint = t('Reach top 5 in the organization leaderboard (currently #{{rank}}).', { rank: yourRank });
-  }
+  const tierRequirements = buildTierRequirements({
+    bronze: t('Largest org ≤50% of runs'),
+    silver: t('Largest org ≤35% of runs'),
+    gold: t('Largest org ≤25% of runs'),
+  });
+
+  const statusLine = t('Currently: {{org}} — {{pct}}% of runs', {
+    org: largestOrgName,
+    pct: largestOrgSharePct,
+  });
 
   return {
-    id: 'top-automator',
-    label: t('Top Automator'),
-    icon: <StarIcon />,
+    id: 'balanced-platform',
+    label: t('Run distribution'),
+    icon: <ShareAltIcon />,
     tier,
     description,
-    nextTierHint,
-    color: tierColor(tier, '#6a1b9a'),
+    tierRequirements,
+    nextTierHint: statusLine,
   };
 }
 
-function computeBadges(t: (s: string, opts?: Record<string, unknown>) => string): BadgeDef[] {
-  const totalRuns = QUARTERLY_GOAL.current;
+function buildEvenLoadBadge(
+  t: (s: string, opts?: Record<string, unknown>) => string,
+  maxInstanceSharePct: number,
+  busiestInstanceName: string
+): BadgeDef {
+  const tier = computeTierMax(maxInstanceSharePct, [60, 45, 30]);
 
-  let streakLen = 0;
-  for (let i = STREAK_HEAT_STRIP_DAYS.length - 1; i >= 0; i--) {
-    if (!STREAK_HEAT_STRIP_DAYS[i].success) break;
-    streakLen++;
-  }
+  const description = t('Job runs are spread across controller instances without heavy concentration.');
 
-  const yourOrg = topOrganizations.find((o) => o.isYourOrg);
-  const yourRank = yourOrg
-    ? topOrganizations.indexOf(yourOrg) + 1
-    : topOrganizations.length + 1;
-  const isRisingStar = yourOrg?.trend === 'up';
+  const tierRequirements = buildTierRequirements({
+    bronze: t('Busiest instance ≤60% of runs'),
+    silver: t('Busiest instance ≤45% of runs'),
+    gold: t('Busiest instance ≤30% of runs'),
+  });
 
+  const statusLine = t('Currently: {{instance}} — {{pct}}% of runs', {
+    instance: busiestInstanceName,
+    pct: maxInstanceSharePct,
+  });
+
+  return {
+    id: 'even-load',
+    label: t('Execution balance'),
+    icon: <ClusterIcon />,
+    tier,
+    description,
+    tierRequirements,
+    nextTierHint: statusLine,
+  };
+}
+
+function computeBadges(
+  t: (s: string, opts?: Record<string, unknown>) => string,
+  organizationFilterIds: readonly string[],
+  periodScale: number,
+  orgFilterScale: number
+): BadgeDef[] {
+  const totalRuns = scaleByHighlightsFilters(QUARTERLY_GOAL.current, periodScale, orgFilterScale);
+  const streakLen = computeStreakLength(getStreakDaysForFilter(organizationFilterIds));
+
+  const trendingCount = topOrganizations.filter((org) => org.trend === 'up').length;
+  const organizationsTotal =
+    organizationFilterIds.length > 0 ? organizationFilterIds.length : ORGANIZATIONS_TOTAL;
+
+  const highlights = getScaledHighlights(organizationFilterIds, periodScale);
   const orgPct =
-    ORGANIZATIONS_TOTAL > 0
-      ? Math.round((HIGHLIGHTS.organizationsActive / ORGANIZATIONS_TOTAL) * 100)
+    highlights.organizationsTotal > 0
+      ? Math.round((highlights.organizationsActive / highlights.organizationsTotal) * 100)
       : 0;
 
-  return [
+  return sortBadgesEarnedFirst([
+    buildRecoveryBadge(
+      t,
+      ACHIEVEMENT_METRICS.recoverySuccessRateCurrent,
+      ACHIEVEMENT_METRICS.recoverySuccessRatePrevious
+    ),
+    buildCleanWeekBadge(t, ACHIEVEMENT_METRICS.cleanWeekConsecutiveDays),
+    buildRisingStarBadge(t, trendingCount, organizationsTotal),
+    buildBalancedPlatformBadge(
+      t,
+      ACHIEVEMENT_METRICS.largestOrgSharePct,
+      ACHIEVEMENT_METRICS.largestOrgName
+    ),
+    buildEvenLoadBadge(
+      t,
+      ACHIEVEMENT_METRICS.maxInstanceSharePct,
+      ACHIEVEMENT_METRICS.busiestInstanceName
+    ),
+    buildFleetBadge(t, orgPct),
     buildRunsBadge(t, totalRuns),
     buildStreakBadge(t, streakLen),
-    buildRisingStarBadge(t, yourRank, isRisingStar),
-    buildFleetBadge(t, orgPct),
-    buildAutomatorBadge(t, yourRank),
-  ];
+  ]);
 }
 
 function TierStars({ count }: Readonly<{ count: number }>) {
-  if (count === 0) return null;
+  if (count === 0) {
+    return <span className="achievement-badge__stars" aria-hidden />;
+  }
+
   return (
-    <span style={{ fontSize: 8, letterSpacing: 1, lineHeight: 1, display: 'block', marginTop: 2 }}>
-      {'★'.repeat(count)}
+    <span className="achievement-badge__stars" aria-hidden>
+      {Array.from({ length: count }, (_, index) => (
+        <StarIcon key={index} />
+      ))}
     </span>
   );
 }
 
+function TierRequirementLine({
+  tier,
+  label,
+  requirement,
+}: Readonly<{
+  tier: Exclude<BadgeTier, 'locked'>;
+  label: string;
+  requirement: string;
+}>) {
+  return (
+    <div className="achievement-badge-tier-line">
+      <span
+        className={`achievement-badge-tier-dot ${TIER_DOT_CLASS[tier]}`}
+        aria-hidden="true"
+      />
+      <span>
+        {label}: {requirement}
+      </span>
+    </div>
+  );
+}
+
 function Badge({ badge }: Readonly<{ badge: BadgeDef }>) {
+  const { t } = useTranslation();
   const isEarned = badge.tier !== 'locked';
   const config = TIER_CONFIG[badge.tier];
 
@@ -344,38 +448,46 @@ function Badge({ badge }: Readonly<{ badge: BadgeDef }>) {
       )}
       <br />
       {badge.description}
-      {badge.tier !== 'gold' && (
-        <>
-          <br />
-          <em>{badge.nextTierHint}</em>
-        </>
-      )}
+      <br />
+      <br />
+      <div className="achievement-badge-tier-list">
+        <TierRequirementLine tier="gold" label={t('Gold')} requirement={badge.tierRequirements.gold} />
+        <TierRequirementLine tier="silver" label={t('Silver')} requirement={badge.tierRequirements.silver} />
+        <TierRequirementLine tier="bronze" label={t('Bronze')} requirement={badge.tierRequirements.bronze} />
+      </div>
+      <br />
+      <em>{badge.nextTierHint}</em>
     </>
   );
+
+  const tierClass =
+    isEarned && badge.tier !== 'locked' ? `achievement-badge--tier-${badge.tier}` : '';
 
   return (
     <Tooltip content={tooltipContent} position="bottom">
       <div
-        className={`achievement-badge ${isEarned ? 'achievement-badge--earned' : 'achievement-badge--locked'}`}
-        style={{
-          '--badge-color': badge.color,
-          border: config.borderStyle,
-          borderColor: isEarned ? badge.color : undefined,
-          opacity: config.opacity,
-        } as React.CSSProperties}
+        className={`achievement-badge ${isEarned ? 'achievement-badge--earned' : 'achievement-badge--locked'} ${tierClass}`.trim()}
+        style={{ opacity: config.opacity }}
         aria-label={badge.label}
       >
-        <span className="achievement-badge__icon">{badge.icon}</span>
         <TierStars count={config.stars} />
+        <span className="achievement-badge__icon">{badge.icon}</span>
         <span className="achievement-badge__label">{badge.label}</span>
       </div>
     </Tooltip>
   );
 }
 
+const BADGE_SCROLL_STEP_PX = 318;
+
 export function AchievementBadges() {
   const { t } = useTranslation();
-  const badges = useMemo(() => computeBadges(t), [t]);
+  const { organizationFilterIds, periodScale, orgFilterScale } = usePostGaHighlightsFilters();
+  const badges = useMemo(
+    () => computeBadges(t, organizationFilterIds, periodScale, orgFilterScale),
+    [t, organizationFilterIds, periodScale, orgFilterScale]
+  );
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const previewMode = useSyncExternalStore(
     subscribeDashboardSettings,
@@ -383,6 +495,13 @@ export function AchievementBadges() {
     getGoalsPreviewMode
   );
   const isDay0 = isDemoMode() && previewMode === 'day0';
+
+  const scrollBadges = useCallback((direction: 'left' | 'right') => {
+    trackRef.current?.scrollBy({
+      left: direction === 'left' ? -BADGE_SCROLL_STEP_PX : BADGE_SCROLL_STEP_PX,
+      behavior: 'smooth',
+    });
+  }, []);
 
   if (isDay0) {
     return (
@@ -393,10 +512,28 @@ export function AchievementBadges() {
   }
 
   return (
-    <div className="achievement-badges-grid">
-      {badges.map((badge) => (
-        <Badge key={badge.id} badge={badge} />
-      ))}
+    <div className="achievement-badges-carousel">
+      <Button
+        variant="plain"
+        className="achievement-badges-carousel__nav"
+        aria-label={t('Show previous achievements')}
+        onClick={() => scrollBadges('left')}
+      >
+        <AngleLeftIcon />
+      </Button>
+      <div ref={trackRef} className="achievement-badges-carousel__track">
+        {badges.map((badge) => (
+          <Badge key={badge.id} badge={badge} />
+        ))}
+      </div>
+      <Button
+        variant="plain"
+        className="achievement-badges-carousel__nav"
+        aria-label={t('Show more achievements')}
+        onClick={() => scrollBadges('right')}
+      >
+        <AngleRightIcon />
+      </Button>
     </div>
   );
 }

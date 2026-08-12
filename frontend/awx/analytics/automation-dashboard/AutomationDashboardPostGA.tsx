@@ -41,9 +41,17 @@ export function AutomationDashboardPostGA() {
               dataCy: 'post-ga-dashboard-tab',
             },
             {
-              label: t('Highlights'),
+              label: t('Leaderboards'),
               page: AwxRoute.AutomationDashboardPostGALeaderboards,
-              dataCy: 'post-ga-highlights-tab',
+              dataCy: 'post-ga-leaderboards-tab',
+            },
+            {
+              label: t('Gamification (concepts)'),
+              page: AwxRoute.AutomationDashboardPostGAGamification,
+              dataCy: 'post-ga-gamification-tab',
+              tooltip: t(
+                'Future-scoped concepts and ideas. This tab preserves an earlier design direction and is not planned for the current release.'
+              ),
             },
           ]}
         />

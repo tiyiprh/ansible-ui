@@ -5,7 +5,7 @@ import { INITIAL_MANAGE_VIEW_PANELS, LEADERBOARD_PANEL_IDS } from './postGaMockD
 
 type LeaderboardPanel = { id: string; name: string };
 
-export function useManagedLeaderboardPanels() {
+export function useManagedLeaderboardPanels(manageItemsId = 'post-ga-highlights') {
   const { t } = useTranslation();
 
   const columns = useMemo(
@@ -29,7 +29,7 @@ export function useManagedLeaderboardPanels() {
 
   const { openManageItems: openManageLeaderboards, managedItems: managedPanels } =
     useManageItems<LeaderboardPanel>({
-      id: 'post-ga-highlights',
+      id: manageItemsId,
       title: t('Manage view'),
       description: t(
         'Hide or show the ranking panels you want on the Highlights tab. Goals and Automation at a glance stay pinned at the top. Use the draggable icon to re-order panels.'

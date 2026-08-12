@@ -125,16 +125,24 @@ export function useAwxNavigation() {
             {
               id: AwxRoute.AutomationDashboardPostGADashboard,
               path: 'dashboard',
+              element: <></>,
               children: [],
             },
             {
               id: AwxRoute.AutomationDashboardPostGALeaderboards,
-              path: 'highlights',
+              path: 'leaderboards',
+              element: <></>,
               children: [],
             },
             {
-              path: 'leaderboards',
-              element: <Navigate to="../highlights" replace />,
+              id: AwxRoute.AutomationDashboardPostGAGamification,
+              path: 'gamification',
+              element: <></>,
+              children: [],
+            },
+            {
+              path: 'highlights',
+              element: <Navigate to="../leaderboards" replace />,
             },
             {
               path: '',

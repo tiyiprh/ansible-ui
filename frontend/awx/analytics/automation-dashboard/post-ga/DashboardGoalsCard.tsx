@@ -10,15 +10,17 @@ import {
 } from '@patternfly/react-core';
 import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from '@patternfly/react-icons';
 import { EmptyStateNoData } from '@ansible/ansible-ui-framework/components/EmptyStateNoData';
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getGoalsPreviewMode,
   isDemoMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+import { usePostGaHighlightsFilters } from './PostGaHighlightsFilterContext';
+import { scaleByHighlightsFilters } from './postGaHighlightsFilterUtils';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
-import { QUARTER_COMPARISON } from './postGaMockData';
+import { WEEK_COMPARISON } from './postGaMockData';
 
 function DeltaIndicator({ current, previous }: Readonly<{ current: number; previous: number }>) {
   if (previous === 0) {
@@ -119,14 +121,32 @@ function ComparisonRow({
 
 export function DashboardGoalsCard() {
   const { t } = useTranslation();
+  const { periodScale, orgFilterScale } = usePostGaHighlightsFilters();
 
   const previewMode = useSyncExternalStore(
     subscribeDashboardSettings,
     getGoalsPreviewMode,
     getGoalsPreviewMode
   );
-  const isFirstQuarter = isDemoMode() && previewMode === 'empty';
   const isDay0 = isDemoMode() && previewMode === 'day0';
+
+  const weekComparison = useMemo(
+    () => ({
+      runs: {
+        current: scaleByHighlightsFilters(WEEK_COMPARISON.runs.current, periodScale, orgFilterScale),
+        previous: scaleByHighlightsFilters(WEEK_COMPARISON.runs.previous, periodScale, orgFilterScale),
+      },
+      savings: {
+        current: scaleByHighlightsFilters(WEEK_COMPARISON.savings.current, periodScale, orgFilterScale),
+        previous: scaleByHighlightsFilters(WEEK_COMPARISON.savings.previous, periodScale, orgFilterScale),
+      },
+      hosts: {
+        current: scaleByHighlightsFilters(WEEK_COMPARISON.hosts.current, periodScale, orgFilterScale),
+        previous: scaleByHighlightsFilters(WEEK_COMPARISON.hosts.previous, periodScale, orgFilterScale),
+      },
+    }),
+    [orgFilterScale, periodScale]
+  );
 
   return (
     <Card className="post-ga-goals-row-card">
@@ -151,43 +171,43 @@ export function DashboardGoalsCard() {
             style={{ borderBottom: '1px solid var(--pf-t--global--border--color--default)' }}
           >
             <ComparisonRow
-              label={t('Runs this quarter')}
+              label={t('Job runs this week')}
               help={t(
-                'Total automation job runs in the current quarter compared to the same period last quarter.'
+                'Total automation job runs this week compared to the previous week.'
               )}
-              currentValue={QUARTER_COMPARISON.runs.current}
-              previousValue={QUARTER_COMPARISON.runs.previous}
-              previousLabel={t('Last quarter')}
+              currentValue={weekComparison.runs.current}
+              previousValue={weekComparison.runs.previous}
+              previousLabel={t('Last week')}
               formatValue={(n) => n.toLocaleString()}
-              showComparison={!isFirstQuarter}
+              showComparison
             />
           </FlexItem>
           <FlexItem
             style={{ borderBottom: '1px solid var(--pf-t--global--border--color--default)' }}
           >
             <ComparisonRow
-              label={t('Cost savings this month')}
+              label={t('Cost savings this week')}
               help={t(
-                'Estimated cost savings from automation this month compared to the previous month.'
+                'Estimated cost savings from automation this week compared to the previous week.'
               )}
-              currentValue={QUARTER_COMPARISON.savings.current}
-              previousValue={QUARTER_COMPARISON.savings.previous}
-              previousLabel={t('Last month')}
+              currentValue={weekComparison.savings.current}
+              previousValue={weekComparison.savings.previous}
+              previousLabel={t('Last week')}
               formatValue={(n) => `$${n.toLocaleString()}`}
-              showComparison={!isFirstQuarter}
+              showComparison
             />
           </FlexItem>
           <FlexItem>
             <ComparisonRow
               label={t('Hosts managed')}
               help={t(
-                'Total managed hosts in the current quarter compared to the previous quarter.'
+                'Total managed hosts this week compared to the previous week.'
               )}
-              currentValue={QUARTER_COMPARISON.hosts.current}
-              previousValue={QUARTER_COMPARISON.hosts.previous}
-              previousLabel={t('Last quarter')}
+              currentValue={weekComparison.hosts.current}
+              previousValue={weekComparison.hosts.previous}
+              previousLabel={t('Last week')}
               formatValue={(n) => n.toLocaleString()}
-              showComparison={!isFirstQuarter}
+              showComparison
             />
           </FlexItem>
         </Flex>

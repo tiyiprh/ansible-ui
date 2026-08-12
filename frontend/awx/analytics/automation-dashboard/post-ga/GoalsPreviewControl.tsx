@@ -10,7 +10,6 @@ import {
 
 const MODES: readonly { value: GoalsPreviewMode; label: string }[] = [
   { value: 'configured', label: 'Populated' },
-  { value: 'empty', label: 'First quarter (no history)' },
   { value: 'day0', label: 'Day 0 (no data)' },
 ];
 

@@ -2,6 +2,8 @@
 
 Net-new **gamification / Post-GA** feature work for [ANSTRAT-1976](https://issues.redhat.com/browse/ANSTRAT-1976). Prerequisite: Dashboard GA ([ANSTRAT-1981](https://issues.redhat.com/browse/ANSTRAT-1981)) ships first.
 
+**Prototype tabs (Aug 2026):** Prior gamification UI is frozen on the **Gamification (concepts)** tab (`AutomationDashboardGamificationHighlights.tsx`, route `/gamification`). Active design work happens on **Highlights** (`AutomationDashboardLeaderboards.tsx`) — strip gamification there as the new direction takes shape. Both tabs may show identical UI until Highlights is edited.
+
 GA dashboard polish on shared components: see [CHANGES-GA-Dashboard.md](CHANGES-GA-Dashboard.md).
 
 ---
@@ -20,11 +22,13 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 | Section | Suggested dev story topic |
 |---------|---------------------------|
 | G-1 | Post-GA page shell — Dashboard + Highlights tabs |
-| G-2 | Highlights — pinned Goals + Automation at a glance |
-| G-3 | Empty states + Configure goals flow |
-| G-4 | Manage view — four ranking panels |
+| G-2 | Highlights — Automation health + pinned At a glance + Automation trends |
+| G-3 | Empty states — Day 0 / first-quarter demo modes |
+| G-4 | Manage view — four ranking panels + Highlights toolbar |
 | G-5 | Org leaderboard — % of quarterly goal met |
-| G-6 | Automation adoption — level name + description (GA UI) |
+| G-6 | ~~Automation adoption~~ — **removed from prototype scope** |
+| G-11 | Automation health card — success donut, velocity, reuse, streak |
+| G-12 | Achievement badges — tiered carousel in At a glance |
 | G-7 | Settings → Dashboard — Details + Edit |
 | G-8 | Settings defaults — empty goals, reset, section copy |
 | G-9 | — | **Do not implement** — prototype-only |
@@ -64,34 +68,40 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 ---
 
-## G-2. Highlights tab — pinned Goals + Automation at a glance
+## G-2. Highlights tab — Automation health + pinned summary row
 
 **Jira:** Create new (ANSTRAT-1976)  
 **Prototype-only:** No
 
 **What:**
-- Move **Goals** and **Automation at a glance** from Dashboard tab to **Highlights** tab.
-- Pin side-by-side below Period/Organization filters and **Manage view** via `.post-ga-goals-row` (CSS grid `1fr 1fr`, stacks at 768px).
-- Goals and At a glance are **not** in Manage view modal (always visible on Highlights).
+- **Highlights tab layout** (top to bottom):
+  1. Toolbar — Period + Organization filters, **Manage view** (G-4)
+  2. **Automation health** card (full width) — G-11
+  3. Pinned row — **Automation at a glance** + **Automation trends** side by side (`.post-ga-goals-row`, CSS grid `1fr 1fr`, stacks at 768px)
+  4. Four Top 5 ranking panels (G-4)
+- Pinned cards and Automation health are **not** in Manage view (always visible on Highlights).
+- **Dashboard tab** keeps GA KPIs + Cost calculation only (summary cards live on Highlights).
 
-**Goals card** — follow `DashboardGoalsCard.tsx`:
+**Automation trends** — follow `DashboardGoalsCard.tsx` (card title **Automation trends**, not Goals):
 - PF `Card` + `CardHeader` (`Title h3 xl`) + `CardBody`.
-- Two sections: **Quarterly automation goal**, **Cost savings this month** — each `DashboardSectionHeading` (h4 lg + `Help`) → `MetricValue` / `MetricLabel` → PF `Progress` (`measureLocation="outside"`).
-- Targets from Settings (`dashboardSettingsUtils.ts`); progress from metrics API in product.
-- Quarterly countdown helper under progress bar (`{{days}} days left in quarter`).
+- Three week-over-week comparison rows: **Job runs this week**, **Cost savings this week**, **Hosts managed** — each `DashboardSectionHeading` (h4 lg + `Help`) → current value (`Title h2 3xl`) → delta (`ArrowUpIcon` / `ArrowDownIcon` / `MinusIcon` + % vs previous week) → previous period label.
+- Day 0 demo: `EmptyStateNoData` (“No trend data yet”). First-quarter demo: rows show without week-over-week deltas (“No previous period data yet”).
+- Mock data scaled by Highlights period + org filters (`PostGaHighlightsFilterContext`).
 
 **Automation at a glance** — follow `DashboardAtAGlanceCard.tsx`:
-- Same Card shell as Goals.
-- Top row: 3 equal columns (`GridItem span={4}`), centered metrics with vertical dividers: orgs active %, templates in use %, runs this month.
-- **Success streak:** 30-day heat strip — custom `div` cells (`.streak-heat-cell`), PF `Tooltip` per day; no PF heat-map component.
-- Adoption section — see G-6.
+- Same Card shell as Automation trends.
+- Top row: 3 equal columns (`GridItem span={4}`), centered metrics with vertical dividers: orgs active %, templates in use %, runs in selected period.
+- **Achievements** section below metrics — horizontal badge carousel with prev/next arrows (G-12). No success streak heat strip here (moved to Automation health).
+- Day 0 demo: `EmptyStateNoData` (“No automation activity yet”).
 
-**Why:** Highlights groups executive summary cards with rankings; Dashboard stays focused on GA operational KPIs.
+**Why:** Highlights groups health metrics, executive summary, achievements, and rankings; Dashboard stays focused on GA operational KPIs.
 
 **Where:**
 - `frontend/awx/analytics/automation-dashboard/post-ga/AutomationDashboardLeaderboards.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/AutomationHealthCard.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardGoalsCard.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/AchievementBadges.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardMetricText.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardSectionHeading.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css`
@@ -100,47 +110,51 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 | Level | PF | Examples |
 |-------|-----|----------|
-| Card title | `Title h3 xl` + Help | Goals, At a glance |
-| Section title | `Title h4 lg` + Help | Quarterly goal, Cost savings, Adoption, Success streak |
-| Metric value | `Title h2 2xl` | Run counts, $ amounts, percentages |
-| Helper | `Content component="small"` | "runs to go", "Last 30 days" |
+| Card title | `Title h3 xl` | Automation health, At a glance, Automation trends |
+| Section title | `Title h4 lg` + Help | Job runs, Cost savings, Success rate, Achievements |
+| Metric value | `Title h2 2xl` / `3xl` | Run counts, $ amounts, percentages |
+| Helper | `Content component="small"` | “Last week”, streak legend |
 
 **Acceptance criteria:**
-- Goals + At a glance render on Highlights only, pinned above ranking panels.
+- Automation health + pinned At a glance / Automation trends render on Highlights only.
 - Cards not reorderable via Manage view.
 - Responsive stack at 768px.
+- Achievements carousel accessible (arrow buttons, keyboard).
 
 ---
 
-## G-3. Empty states + Configure goals
+## G-3. Empty states — Day 0 / first-quarter modes
 
 **Jira:** Create new (ANSTRAT-1976)  
-**Prototype-only:** No
+**Prototype-only:** Partial (demo toggle in G-9)
 
 **What:**
-- When goals are not configured, **Goals** and **Automation at a glance** show framework `EmptyStateCustom` (`variant="sm"`) with primary **Configure goals** → Settings Edit route.
-- Reuse `GoalsConfigureEmptyState.tsx` pattern.
-- Org leaderboard shows **—** when goals not configured (G-5).
+- **Automation trends:** Day 0 → `EmptyStateNoData` (“No trend data yet”). First-quarter demo → comparison rows without week-over-week delta.
+- **Automation at a glance:** Day 0 → `EmptyStateNoData` (“No automation activity yet”). Populated → metrics + achievements carousel.
+- **Automation health:** Day 0 → compact empty state; populated → donut, sparkline, reuse, heat strip.
+- Prototype **Goals preview** sidebar toggle switches Day 0 / empty (first quarter) / populated demo — see G-9.
+- `GoalsConfigureEmptyState.tsx` (Configure goals → Settings Edit) remains in codebase for handoff reference but is **not** wired on Highlights cards in the current prototype. Product may still gate org leaderboard (G-5) on configured quarterly targets.
 
-**Why:** First-time admins need a clear path to configure org-specific targets before metrics are meaningful.
+**Why:** New platforms need clear empty states before automation data exists; first period may lack prior-week comparison data.
 
 **Where:**
-- `frontend/awx/analytics/automation-dashboard/post-ga/GoalsConfigureEmptyState.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardGoalsCard.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/AutomationHealthCard.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/GoalsConfigureEmptyState.tsx`
 
-**Components:** `EmptyStateCustom` (framework), PF `Button` primary.
+**Components:** `EmptyStateNoData` (framework).
 
 **Acceptance criteria:**
-- Both cards show empty state when quarterly/monthly targets unset.
-- **Configure goals** navigates to Settings → Dashboard Edit.
-- Populated state shows metrics when Settings configured.
+- Day 0 shows appropriate empty states on summary cards and health card.
+- Populated state shows metrics when data exists.
+- Week-over-week deltas hidden when no previous period (first quarter).
 
-**Open PM questions:** Empty vs pre-populated goal defaults — see G-8 and `AutomationDashboardSettingsPrototypeNote`.
+**Open PM questions:** Should org % / template % / runs show before quarterly goals are configured in Settings (metrics-only, no goal targets)? Prototype does not gate At a glance on Settings.
 
 ---
 
-## G-4. Manage view — four ranking panels
+## G-4. Manage view — four ranking panels + Highlights toolbar
 
 **Jira:** Create new (ANSTRAT-1976)  
 **Prototype-only:** No
@@ -149,71 +163,139 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 - **Manage view** modal lists **four** Top 5 ranking panels only: organizations, templates, projects, users.
 - Remove **Human hours reclaimed** panel and placeholder panels from mock data and UI.
 - Framework `useManageItems` + `ReorderItems` (Overview pattern).
-- Ranking panels below pinned Goals row: **two table cards per row** — PF `Grid` + `GridItem md={6}`; stack below `md`.
-- Toolbar filters on Highlights: PF `Toolbar` + `PageToolbarFilters` — pinned **Period** and **Organization** `SingleSelect` filters (same pattern as Dashboard tab).
+- Ranking panels below pinned summary row: **two table cards per row** — PF `Grid` + `GridItem md={6}`; stack below `md`.
+- Toolbar filters on Highlights (`usePostGaHighlightsToolbar.tsx`): PF `Toolbar` + `PageToolbarFilters` — pinned **Period** (synced with Dashboard tab via `PostGADashboardFilterContext`) and **Organization** **MultiSelect** (prototype org names from `FILTER_ORGANIZATIONS`). **Not** the full Dashboard filter set (no project, template, or label filters on Highlights).
+- `PostGaHighlightsFilterProvider` scales mock cards (health, at a glance, trends, achievements, mock org/template rows) when period or org selection changes. Live API panels (projects, users, templates) use **period only**.
 - Each panel: PF `Card` + compact PF `Table` (or `EmptyState`); ~320px card height.
+- **Rank display:** positions #1–#3 use PF `Label variant="outline"` + `CrownIcon` with tier colors (gold / silver / bronze) — shared CSS classes with achievement badge tiers (`post-ga-tier--gold/silver/bronze`).
+- **Column header:** **Total no. of jobs** — maps to metrics-service `execution_count` (GA `DashboardTableCard` parity).
 
-**Why:** Focus rankings on actionable Top 5 lists; drop unreleased placeholder panels.
+**Why:** Focus rankings on actionable Top 5 lists; org filter scopes mock executive summary without duplicating full Dashboard drill-down filters.
 
 **Where:**
+- `frontend/awx/analytics/automation-dashboard/post-ga/usePostGaHighlightsToolbar.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/PostGaHighlightsFilterContext.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGaHighlightsFilterUtils.ts`
 - `frontend/awx/analytics/automation-dashboard/post-ga/useManagedLeaderboardPanels.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/AutomationDashboardLeaderboards.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/postGaMockData.ts`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css`
 
 **Acceptance criteria:**
 - Manage view shows exactly four panels; reorder persists per product storage pattern.
 - Human hours reclaimed not in UI or manage list.
 - Period filter includes **This quarter** (see G-5).
+- Organization filter is multi-select on Highlights toolbar.
+- Projects and users panels load from `GET …/dashboard_reports/report/details/` (`top_projects`, `top_users`) when available.
 
 ---
 
 ## G-5. Org leaderboard — % of quarterly goal met
 
 **Jira:** Create new (ANSTRAT-1976)  
-**Prototype-only:** No
+**Prototype-only:** No (product intent); **prototype delta** below
 
-**What:**
+**What (product):**
 - Top organizations panel ranked by **% of quarterly goal met** using saved quarterly run target from Settings.
 - Panel help text explains ranking metric.
 - Shows **—** when goals not configured.
+
+**Prototype delta:** Organizations panel currently uses **mock data** ranked by `execution_count` with column **Total no. of jobs** — same label as projects/users for GA parity demo. Switch to % of goal met when `top_organizations` API exists and Settings targets are wired.
 
 **Why:** Leadership view ties org performance to configured automation goals, not raw run counts alone.
 
 **Where:** `frontend/awx/analytics/automation-dashboard/post-ga/AutomationDashboardLeaderboards.tsx`, `dashboardSettingsUtils.ts`
 
-**API / backend:** Metrics API must expose org-level progress vs configured quarterly target.
+**API / backend:** Metrics API must expose org-level progress vs configured quarterly target (`top_organizations` on details endpoint).
 
 **Acceptance criteria:**
 - Org table sorted by % of goal met when target configured.
 - Em dash when no target configured.
 - **This quarter** available in Period filter.
 
+**Open PM question:** Confirm % of quarterly goal met vs execution_count for GA org leaderboard (prototype shows execution_count).
+
 ---
 
-## G-6. Automation adoption — level name + description only
+## G-6. Automation adoption — removed from prototype scope
+
+**Jira:** N/A unless product reintroduces adoption scorecard  
+**Prototype-only:** Was explored; **removed** from Highlights and Settings in current prototype
+
+**What (historical):** CMMI-style adoption level (name + description, no decimal score) was considered for At a glance and Settings. **Not in current prototype.** Leftover mock constants (`MATURITY_LEVEL`, `AUTOMATION_MATURITY_LEVELS` in `postGaMockData.ts`, `maturityUtils.ts`) are unused — safe to delete in a cleanup pass.
+
+**If product revives this:** Backend scorecard required; UI would show level name + description only; configurable level rows were previously sketched in Settings (see `CHANGES-archive.md`).
+
+**Do not implement** from current prototype unless PM reopens scope.
+
+---
+
+---
+
+## G-11. Automation health card
 
 **Jira:** Create new (ANSTRAT-1976)  
-**Prototype-only:** No (UI); scorecard backend TBD
+**Prototype-only:** Mock data; API wiring TBD
 
 **What:**
-- **Automation adoption** displays **Level N – Name** + description only — **no decimal score, no star row**.
-- Level names/descriptions from Settings (`maturityUtils.ts`); displayed level from backend scorecard in product (prototype uses hardcoded `MATURITY_LEVEL` in mock).
-- Dynamic “out of N” uses saved adoption level count from Settings.
-- **Configure** link on adoption — out of scope for initial prototype handoff.
+- Full-width **Automation health** card on Highlights (`AutomationHealthCard.tsx`), below toolbar, above pinned At a glance / Automation trends row.
+- Four sections in a responsive grid:
+  1. **Job success rate** — `@patternfly/react-charts` `ChartDonut` inside `PageChartContainer`; legend for successful / failed / error / canceled using `pfSuccess`, `pfDanger`, `pfWarning`, `pfInfo`.
+  2. **Automation velocity** — `ChartLine` sparkline + week-over-week delta (`ArrowUpIcon` / `ArrowDownIcon`).
+  3. **Template reuse** — percentage metric with help popover.
+  4. **Success streak** — 30-day heat strip (custom `.streak-heat-cell` divs + PF `Tooltip` per day); streak length label uses `FireIcon`; milestone labels may use `TrophyIcon`.
+- Day 0: compact `EmptyStateNoData`. Mock metrics scaled by Highlights period + org filters.
+- Replaces earlier placement of success streak on At a glance card.
 
-**Why:** GA UI shows maturity level without implying false precision; backend derives level from platform metrics.
+**Why:** Operators need at-a-glance health signals (reliability, momentum, reuse, consistency) before diving into leaderboards.
 
-**Where:** `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx`, `maturityUtils.ts`
+**Where:**
+- `frontend/awx/analytics/automation-dashboard/post-ga/AutomationHealthCard.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGaMockData.ts` (`JOB_SUCCESS_BREAKDOWN`, `AUTOMATION_VELOCITY`, `TEMPLATE_REUSE`, streak helpers)
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGaHighlightsFilterUtils.ts`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css`
 
-**Open PM questions** (from `PostGaHighlightsPrototypeNote`):
-- Should adoption be a scorecard (4–6 platform metrics → 0–5 sub-scores) with level from lowest or weighted average?
-- Which inputs in scope for GA (org/template activity, utilization, standardization, job reliability, governance)?
-- Should level thresholds be configurable in Settings or fixed by product?
+**Components:** PF `Card`, `ChartDonut`, `ChartLine`, `PageChartContainer`, `Help`, `Tooltip`.
 
 **Acceptance criteria:**
-- UI shows level name + description only.
-- No numeric score or star icons in GA UI.
-- Level count reflects Settings row count.
+- Donut and sparkline use PF charts (not custom SVG).
+- Heat strip shows 30 days with accessible tooltips.
+- Card respects period filter; org filter scopes mock data in prototype.
+
+---
+
+## G-12. Achievement badges
+
+**Jira:** Create new (ANSTRAT-1976)  
+**Prototype-only:** Mock tier logic; API TBD
+
+**What:**
+- **Achievements** subsection inside **Automation at a glance** — horizontal carousel (`AchievementBadges.tsx`) with previous/next arrow buttons.
+- **Eight badges**, each with bronze / silver / gold tiers (0–3 PF `StarIcon` on earned badges).
+- **Sort order:** earned badges left (gold → silver → bronze by tier rank), locked badges right.
+- **Visual design:** tier border and icon tint use PF nonstatus yellow / gray / orange tokens — same palette as leaderboard rank crowns (`achievement-badge--tier-gold/silver/bronze` in `postGa.css`).
+- **Icons:** PF icons per badge (e.g. `FireIcon` Daily Streak, `TrophyIcon` 10K Runs).
+- **Tooltip:** description + Gold/Silver/Bronze tier legend (colored dot + requirement text); use **org** abbreviation in tier lines where space is tight (e.g. “50% of orgs active”).
+- **Locked state:** muted icon, tier stars hidden, tooltip still shows requirements.
+- Mock inputs: `ACHIEVEMENT_METRICS` in `postGaMockData.ts`; demo tuned so at least one gold-tier earned badge is visible by default.
+
+**Why:** Gamification motivates adoption and surfaces platform health signals without duplicating raw KPI tables.
+
+**Where:**
+- `frontend/awx/analytics/automation-dashboard/post-ga/AchievementBadges.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/DashboardAtAGlanceCard.tsx`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGaMockData.ts`
+- `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css`
+
+**Open PM questions** (from `PostGaPrototypeNotes`):
+- Remove **Org Adoption** and **Daily Streak** badges (overlap At a glance org % and Automation health streak)?
+- Day 0: locked badge row vs placeholder text vs hidden until first job?
+- Per-badge threshold confirmation (Recovery, Clean week, Run distribution, Execution balance).
+
+**Acceptance criteria:**
+- Carousel keyboard-accessible; badges expose name and tier via tooltip.
+- Earned-first sort; tier colors match crown tokens in light and dark theme.
+- No inline `border` shorthand that overrides tier `border-color` (borders defined in CSS).
 
 ---
 
@@ -230,22 +312,19 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 **Details:**
 - `PageFormGrid` + read-only `PageFormGroup` (not `PageDetails`).
-- `PageFormSection` for **Automation goals** and **Adoption levels**.
+- `PageFormSection` for **Automation goals** only (quarterly run target + monthly savings target).
 - Pinned **Edit** action in header.
-- One-line intro under **Adoption levels** on Details.
-- Adoption help popover adds: “Levels increase as automation becomes more consistent, standardized, and measured.”
 - `PrototypeNote` on Details and Edit (design notes only in prototype — see G-9).
 
 **Edit:**
 - `PlatformPageForm` + `PageFormSection`.
 - **Automation goals:** quarterly run target + monthly savings target (`PageFormTextInput`; `$` display — no currency picker in prototype).
-- **Adoption levels:** name + description rows with add/delete; minimum five rows; `post-ga-adoption-level-row` layout (name ~1 col, description ~2 cols).
 - **Reset to defaults** secondary action — see G-8.
-- Section description copy under **Automation goals** and **Adoption levels** headers on Edit only.
+- Section description copy under **Automation goals** header on Edit only.
 
 **Persist:** gateway/settings API in product (prototype uses `localStorage` via `dashboardSettingsUtils.ts`).
 
-**Why:** Admins configure org-specific goals and CMMI-style adoption levels before dashboard gamification surfaces show meaningful data.
+**Why:** Admins configure org-specific quarterly run and monthly savings targets for goal-based leaderboard ranking (G-5).
 
 **Where:**
 - `platform/settings/AutomationDashboardSettingsDetails.tsx`
@@ -253,7 +332,6 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 - `platform/settings/GatewaySettingsCategories.tsx`
 - `platform/main/usePlatformNavigation.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/dashboardSettingsUtils.ts`
-- `frontend/awx/analytics/automation-dashboard/post-ga/maturityUtils.ts`
 
 **Components:** `PlatformPageForm`, `PageFormGrid`, `PageFormSection`, `PageFormTextInput`, `PageFormGroup`.
 
@@ -272,8 +350,8 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 **What:**
 - Goal fields start **empty** on Edit (no silent 15000 / $5000 defaults).
-- **Reset to defaults** clears goal fields and restores **five CMMI-style adoption level rows** (industry-standard names/descriptions).
-- Factory defaults for adoption levels only; goals have no vendor benchmark defaults.
+- **Reset to defaults** clears goal fields (empty quarterly run and monthly savings).
+- No vendor benchmark defaults for goals.
 
 **Why:** Org-specific KPIs should not ship with misleading pre-filled targets.
 
@@ -281,7 +359,7 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 **Acceptance criteria:**
 - New org / first Edit shows empty quarterly run and monthly savings fields.
-- Reset restores five adoption rows and clears goals.
+- Reset clears goals.
 - Details read-only reflects saved values.
 
 **Open PM question:** Confirm empty factory defaults preferred over suggested/pre-filled targets (Aug 10 PM sync).
@@ -300,6 +378,8 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 | **Goals preview toggle** (Empty vs Populated) | `GoalsPreviewControl.tsx`, `AutomationDashboardPostGA.tsx` headerActions, `sessionStorage` | Demo empty vs populated without clearing Settings |
 | **PrototypeNote** | `platform/common/PrototypeNote.tsx`, `PostGaPrototypeNotes.tsx` on Dashboard/Highlights/Settings | Design review callouts |
 | **localStorage** persistence | `dashboardSettingsUtils.ts`, `maturityUtils.ts` | Replace with settings API |
+| **PostGaHighlightsFilterContext** + utils | `PostGaHighlightsFilterContext.tsx`, `postGaHighlightsFilterUtils.ts` | Prototype org/period scaling for mock cards |
+| **Gamification (concepts) tab** | `AutomationDashboardGamificationHighlights.tsx`, `AutomationDashboardPostGAGamificationTab.tsx` | Frozen prior direction; hide tab from nav or deploy when no longer needed for review |
 | **MSW mock handlers** | `platform/src/mocks/demo/handlers/` | GitLab Pages demo only |
 | **Report actions icon divergence** | See [CHANGES-GA-Dashboard.md GA-7](CHANGES-GA-Dashboard.md) | PM decision before dev |
 | **Cost toolbar Checkbox + 3-col grid** | See [CHANGES-GA-Dashboard.md GA-2](CHANGES-GA-Dashboard.md) | Partially prototype delta vs devel |
@@ -317,13 +397,14 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 
 **Scope (Post-GA / Settings):**
 - **Page header:** `AutomationDashboardPostGA.tsx` — `titleHelp`
-- **Goals card:** `DashboardGoalsCard.tsx` — Quarterly automation goal, Cost savings section helps
-- **Automation at a glance:** `DashboardAtAGlanceCard.tsx` — Adoption intro; Success streak (full sentences, not `Green = …` fragments)
+- **Automation trends:** `DashboardGoalsCard.tsx` — Job runs, Cost savings, Hosts managed section helps
+- **Automation at a glance:** `DashboardAtAGlanceCard.tsx` — metric helps; Achievements intro if needed
+- **Automation health:** `AutomationHealthCard.tsx` — success rate, velocity, template reuse, success streak helps
 - **Dashboard tab KPIs/charts:** `AutomationDashboardPostGADashboardTab.tsx` — Successful jobs, Failed jobs, Hosts automated, Hours of automation, both chart cards
 - **Highlights rankings:** `AutomationDashboardLeaderboards.tsx` — panel helps where not already compliant
 - **Settings → Dashboard:** `AutomationDashboardSettingsDetails.tsx`, `AutomationDashboardSettingsEdit.tsx` — page `titleHelp`, goal field `labelHelp`
 
-**Do not change:** Adoption **Levels** list inside adoption popover (formatted reference). Single-sentence compliant leaderboard helps unless copy-editing for consistency in same pass.
+**Do not change:** Single-sentence compliant leaderboard helps unless copy-editing for consistency in same pass.
 
 **Where:** Files listed above; framework `Help` component.
 
@@ -349,3 +430,13 @@ Shared components improved on devel — do not duplicate Jira specs here:
 
 - **AAP-85988** (UX prototype refresh) with **AAP-85053** (GA NumberInput) — different audiences.
 - **Gamification Settings (G-7)** with **GA cost toolbar (GA-2)** — different surfaces and components.
+
+---
+
+## [Aug 12, 2026] Highlights prototype refresh — health, trends, achievements
+
+**What:** Highlights tab layout updated: toolbar (period + organization multi-select) → **Automation health** card → pinned **Automation at a glance** + **Automation trends** → four Top 5 leaderboards. Achievement badges, PF charts, org filter on mock data. **Automation adoption scorecard removed** from prototype (Highlights + Settings). Quarterly goals progress UI replaced by Automation trends on Highlights.
+
+**Why:** Align prototype with PM/design review: separate health metrics from summary KPIs, add gamification badges, simplify Highlights filters vs full Dashboard, use PF charts/icons.
+
+**Where:** `AutomationDashboardLeaderboards.tsx`, `AutomationHealthCard.tsx`, `DashboardGoalsCard.tsx`, `DashboardAtAGlanceCard.tsx`, `AchievementBadges.tsx`, `usePostGaHighlightsToolbar.tsx`, `PostGaHighlightsFilterContext.tsx`, `postGaHighlightsFilterUtils.ts`, `postGaMockData.ts`, `postGa.css`, `PostGaPrototypeNotes.tsx`, `CHANGES-Gamification.md` (G-2–G-6, G-11, G-12).

@@ -290,6 +290,7 @@ export enum AwxRoute {
   AutomationDashboardPostGA = 'awx-automation-dashboard-post-ga',
   AutomationDashboardPostGADashboard = 'awx-automation-dashboard-post-ga-dashboard',
   AutomationDashboardPostGALeaderboards = 'awx-automation-dashboard-post-ga-leaderboards',
+  AutomationDashboardPostGAGamification = 'awx-automation-dashboard-post-ga-gamification',
   // Settings
   Settings = 'awx-settings',
   SettingsPreferences = 'awx-settings-preferences',

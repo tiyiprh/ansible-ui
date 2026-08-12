@@ -89,29 +89,91 @@ export function PostGaHighlightsPrototypeNote({
       defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Goals</strong> and <strong>Automation at a glance</strong> sit below the
-          Highlights filters and Manage view control; they are not in Manage view.
+          Toolbar (period + organization) → <strong>Automation at a glance</strong> card → four{' '}
+          <strong>Top 5</strong> panels.
         </>,
         <>
-          When goals are not configured, both cards show an empty state with primary{' '}
-          <strong>Configure goals</strong> (→ Settings Edit). Sidebar prototype overlay switches
-          empty vs populated demo data.
+          Period filter (<strong>This month</strong> / <strong>This quarter</strong> /{' '}
+          <strong>All time</strong>) is independent from the Dashboard tab DateRange filter.
         </>,
         <>
-          Organizations rank by <strong>% of quarterly goal met</strong> using the saved quarterly
-          run target; shows <strong>—</strong> when goals are not configured.
+          At-a-glance metrics, org leaderboard, and template fallback rows are mock data in{' '}
+          <code>postGaMockData.ts</code>, scaled when period or org filter changes.
         </>,
         <>
-          <strong>Automation adoption</strong> level (<code>MATURITY_LEVEL</code> in mock data) is
-          hardcoded — product needs a backend scorecard from platform metrics. CMMI-style level{' '}
-          <strong>names/descriptions</strong> are industry-standard defaults; GA UI shows{' '}
-          <strong>level name + description only</strong> (no decimal score).
+          <strong>Projects</strong>, <strong>users</strong>, and <strong>templates</strong> use live{' '}
+          <code>dashboard_reports/report/details/</code> data — period only in this prototype; org IDs
+          are not passed to the API yet.
+        </>,
+        <>
+          <strong>Success streak</strong> is always platform-wide (last 30 days) — not scoped by period
+          or organization filters.
+        </>,
+        <>
+          Column headers: <strong>Projects</strong> — <strong>Total jobs</strong>;{' '}
+          <strong>Templates</strong>, <strong>Organizations</strong>, <strong>Users</strong> —{' '}
+          <strong>Total job runs</strong>. Org filter uses prototype org names; product should use
+          gateway org IDs.
         </>,
       ]}
       questions={[
-        'Should Automation at a glance show org %, template %, runs, and success streak before goals are configured? In product these metrics could be computed from existing metrics data without goal targets; the prototype gates both cards on goals (G-3).',
-        'Should adoption be a scorecard (4–6 platform metrics, each mapped to 0–5), with the displayed level derived from the lowest sub-score or a weighted average? Which inputs are in scope for GA (e.g. org/template activity, utilization, standardization, job reliability, governance)?',
-        'For GA UI, confirm level name + description only (no decimal like “3.2 out of 5”). Should level thresholds be configurable in Settings alongside level names, or fixed by the product?',
+        'Wire organization filter to report details so top_projects, top_users, and template runs respect the Leaderboards org multi-select (API supports org filter; prototype gap).',
+        'Does top_projects use a distinct job-count field, or is execution_count acceptable for v1?',
+        'Org leaderboard: rank by successful job runs only — which metrics-service field or status filter?',
+      ]}
+    />
+  );
+}
+
+export function PostGaGamificationPrototypeNote({
+  defaultOpen,
+}: Readonly<{ defaultOpen?: boolean }> = {}) {
+  return (
+    <PrototypeNote
+      defaultOpen={defaultOpen}
+      notes={[
+        <>
+          Frozen snapshot of the prior gamification direction — do not edit for the new Leaderboards
+          work. Tab tooltip: future-scoped concepts, not current release. Implementation handoff:{' '}
+          <code>CHANGES-Gamification.md</code>. Active direction: <strong>Leaderboards</strong> tab (
+          <code>AutomationDashboardLeaderboards.tsx</code>).
+        </>,
+        <>
+          <strong>Automation health</strong>, <strong>Automation trends</strong>,{' '}
+          <strong>At a glance</strong> metrics, <strong>Achievements</strong>, and{' '}
+          <strong>Top organizations / templates</strong> rows are mock data in{' '}
+          <code>postGaMockData.ts</code>, scaled when period or org filter changes — not live API
+          responses.
+        </>,
+        <>
+          <strong>Projects</strong> and <strong>users</strong> leaderboards use live metrics-service{' '}
+          <code>top_projects</code> / <code>top_users</code> from{' '}
+          <code>GET /api/metrics/v1/dashboard_reports/report/details/</code> (period only).{' '}
+          <strong>Templates</strong> use report list <code>runs</code> when loaded; mock fallback
+          otherwise.
+        </>,
+        <>
+          Backend required: <code>top_organizations</code> on the details endpoint; org leaderboard
+          ranked by <strong>% of quarterly goal met</strong> (G-5) — prototype still mocks{' '}
+          <code>execution_count</code>. Week-over-week trend values, job success breakdown, velocity
+          series, template reuse %, daily streak cells, and achievement tier state all need metrics
+          definitions (or a dedicated gamification/achievements API).
+        </>,
+        <>
+          Organization filter uses prototype org names (<code>FILTER_ORGANIZATIONS</code>) — product
+          should use real org IDs. Org filter does not scope live API panels today.
+        </>,
+        <>
+          Eight <strong>Achievement</strong> badges and bronze/silver/gold thresholds are computed
+          client-side from <code>ACHIEVEMENT_METRICS</code> — demo values tuned to show earned and
+          locked tiers. Earned-first sort order is a prototype UX choice.
+        </>,
+      ]}
+      questions={[
+        'Org leaderboard for GA: rank by % of quarterly goal met (G-5) or execution_count?',
+        'Day 0: show a row of locked achievement badges, placeholder copy, or hide achievements until the first job runs?',
+        'Remove Org Adoption and Daily Streak badges? They overlap org active % (At a glance) and success streak (Automation health).',
+        'Recovery / Clean week / Run distribution / Execution balance — confirm thresholds and whether canceled jobs count like failures for streak and success rate.',
       ]}
     />
   );
@@ -128,13 +190,9 @@ export function AutomationDashboardSettingsPrototypeNote({
       defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Settings → Automation Analytics → Dashboard</strong> is new (Gateway settings
-          pattern). Goals and adoption levels persist in browser <code>localStorage</code> only in
-          the prototype — settings API in product.
-        </>,
-        <>
-          Goal fields have no industry-standard default — admins configure org-specific targets.
-          Adoption levels ship with five CMMI-style default rows.
+          <strong>Settings → Automation Analytics → Dashboard</strong> may be hidden in demo nav;
+          route and form remain in codebase for handoff. Goal targets persist in browser{' '}
+          <code>localStorage</code> only in the prototype — settings API in product.
         </>,
       ]}
       questions={[

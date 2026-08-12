@@ -44,8 +44,14 @@ describe('dashboardSettingsUtils', () => {
     expect(shouldShowEmptyGoalsCard()).toBe(false);
   });
 
-  test('should show empty goals card by default in demo mode', () => {
+  test('should not show empty goals card by default in demo populated preview', () => {
     vi.stubEnv('VITE_DEMO_MODE', 'true');
+    expect(shouldShowEmptyGoalsCard()).toBe(false);
+  });
+
+  test('should show empty goals card in demo day 0 preview', () => {
+    vi.stubEnv('VITE_DEMO_MODE', 'true');
+    setGoalsPreviewMode('day0');
     expect(shouldShowEmptyGoalsCard()).toBe(true);
   });
 

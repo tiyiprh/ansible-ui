@@ -17,6 +17,11 @@ describe('createNavigateToRoutes', () => {
                 path: 'dashboard',
                 children: [],
               },
+              {
+                id: 'awx-automation-dashboard-post-ga-gamification',
+                path: 'gamification',
+                children: [],
+              },
             ],
           },
         ],
@@ -43,6 +48,9 @@ describe('createNavigateToRoutes', () => {
 
     expect(routes['awx-automation-dashboard-post-ga-dashboard']).toBe(
       '/analytics/automation-dashboard/post-ga/dashboard'
+    );
+    expect(routes['awx-automation-dashboard-post-ga-gamification']).toBe(
+      '/analytics/automation-dashboard/post-ga/gamification'
     );
     expect(routes['platform-automation-dashboard-settings']).toBe(
       '/settings/automation-analytics/dashboard'

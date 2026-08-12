@@ -7,24 +7,22 @@ import {
   Title,
 } from '@patternfly/react-core';
 import { EmptyStateNoData } from '@ansible/ansible-ui-framework/components/EmptyStateNoData';
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getGoalsPreviewMode,
   isDemoMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+import { usePostGaHighlightsFilters } from './PostGaHighlightsFilterContext';
+import { getScaledHighlights } from './postGaHighlightsFilterUtils';
 import { AchievementBadges } from './AchievementBadges';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel, MetricValue } from './DashboardMetricText';
-import {
-  HIGHLIGHTS,
-  ORGANIZATIONS_TOTAL,
-  TEMPLATES_TOTAL,
-} from './postGaMockData';
 
 export function DashboardAtAGlanceCard() {
   const { t } = useTranslation();
+  const { organizationFilterIds, periodScale } = usePostGaHighlightsFilters();
 
   const previewMode = useSyncExternalStore(
     subscribeDashboardSettings,
@@ -32,6 +30,11 @@ export function DashboardAtAGlanceCard() {
     getGoalsPreviewMode
   );
   const isDay0 = isDemoMode() && previewMode === 'day0';
+
+  const highlights = useMemo(
+    () => getScaledHighlights(organizationFilterIds, periodScale),
+    [organizationFilterIds, periodScale]
+  );
 
   return (
     <Card className="post-ga-goals-row-card">
@@ -56,34 +59,36 @@ export function DashboardAtAGlanceCard() {
             <Grid hasGutter>
               <GridItem span={4} className="post-ga-at-a-glance-metric-col">
                 <MetricValue>
-                  {ORGANIZATIONS_TOTAL > 0
-                    ? Math.round((HIGHLIGHTS.organizationsActive / ORGANIZATIONS_TOTAL) * 100)
+                  {highlights.organizationsTotal > 0
+                    ? Math.round(
+                        (highlights.organizationsActive / highlights.organizationsTotal) * 100
+                      )
                     : 0}
                   %
                 </MetricValue>
                 <MetricLabel>
                   {t('{{active}} out of {{total}} organizations active', {
-                    active: HIGHLIGHTS.organizationsActive,
-                    total: ORGANIZATIONS_TOTAL,
+                    active: highlights.organizationsActive,
+                    total: highlights.organizationsTotal,
                   })}
                 </MetricLabel>
               </GridItem>
               <GridItem span={4} className="post-ga-at-a-glance-metric-col">
                 <MetricValue>
-                  {TEMPLATES_TOTAL > 0
-                    ? Math.round((HIGHLIGHTS.templatesInUse / TEMPLATES_TOTAL) * 100)
+                  {highlights.templatesTotal > 0
+                    ? Math.round((highlights.templatesInUse / highlights.templatesTotal) * 100)
                     : 0}
                   %
                 </MetricValue>
                 <MetricLabel>
                   {t('{{active}} out of {{total}} templates in use', {
-                    active: HIGHLIGHTS.templatesInUse,
-                    total: TEMPLATES_TOTAL,
+                    active: highlights.templatesInUse,
+                    total: highlights.templatesTotal,
                   })}
                 </MetricLabel>
               </GridItem>
               <GridItem span={4} className="post-ga-at-a-glance-metric-col">
-                <MetricValue>{HIGHLIGHTS.runsThisMonth.toLocaleString()}</MetricValue>
+                <MetricValue>{highlights.runsInPeriod.toLocaleString()}</MetricValue>
                 <MetricLabel>{t('Runs in selected period')}</MetricLabel>
               </GridItem>
             </Grid>
@@ -98,11 +103,11 @@ export function DashboardAtAGlanceCard() {
           >
             <DashboardSectionHeading
               title={t('Achievements')}
-              help={t('Badges earned based on your automation milestones. Hover over each badge for details and next tier requirements.')}
+              help={t(
+                'Badges earned based on your automation milestones. Use the arrows to see more. Hover over each badge for details and tier requirements.'
+              )}
             />
-            <div style={{ marginTop: 8 }}>
-              <AchievementBadges />
-            </div>
+            <AchievementBadges />
           </GridItem>
         </Grid>
         )}

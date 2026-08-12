@@ -1,4 +1,11 @@
 import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PageChartContainer } from '@ansible/ansible-ui-framework';
+import {
+  pfDanger,
+  pfInfo,
+  pfSuccess,
+  pfWarning,
+} from '@ansible/ansible-ui-framework/components/pfcolors';
 import {
   Card,
   CardBody,
@@ -12,7 +19,8 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { ArrowUpIcon, ArrowDownIcon, MinusIcon, TrophyIcon } from '@patternfly/react-icons';
+import { Chart, ChartDonut, ChartLine } from '@patternfly/react-charts/victory';
+import { ArrowUpIcon, ArrowDownIcon, FireIcon, MinusIcon, TrophyIcon } from '@patternfly/react-icons';
 import { EmptyStateNoData } from '@ansible/ansible-ui-framework/components/EmptyStateNoData';
 import { useMemo, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,54 +29,86 @@ import {
   isDemoMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+import { usePostGaHighlightsFilters } from './PostGaHighlightsFilterContext';
+import {
+  computeStreakLength,
+  getStreakDaysForFilter,
+  scaleByHighlightsFilters,
+} from './postGaHighlightsFilterUtils';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel } from './DashboardMetricText';
 import {
   AUTOMATION_VELOCITY,
   JOB_SUCCESS_BREAKDOWN,
-  STREAK_HEAT_STRIP_DAYS,
   STREAK_PERIOD_DAYS,
   TEMPLATE_REUSE,
 } from './postGaMockData';
 
-function VelocitySparkline({
-  data,
-  width = 180,
-  height = 48,
-}: Readonly<{ data: readonly number[]; width?: number; height?: number }>) {
+const JOB_OUTCOME_COLORS = {
+  successful: pfSuccess,
+  failed: pfDanger,
+  error: pfWarning,
+  canceled: pfInfo,
+} as const;
+
+function VelocitySparkline({ data }: Readonly<{ data: readonly number[] }>) {
   if (data.length < 2) return null;
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const padding = 4;
-  const chartW = width - padding * 2;
-  const chartH = height - padding * 2;
-
-  const points = data
-    .map((v, i) => {
-      const x = padding + (i / (data.length - 1)) * chartW;
-      const y = padding + chartH - ((v - min) / range) * chartH;
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  const lastValue = data.at(-1) ?? 0;
-  const trend = lastValue - data[0];
-  let color = 'var(--pf-t--global--text--color--subtle)';
-  if (trend > 0) color = 'var(--pf-t--global--color--status--success--default)';
-  else if (trend < 0) color = 'var(--pf-t--global--color--status--danger--default)';
+  const chartData = data.map((value, index) => ({ x: index + 1, y: value }));
+  const trend = (data.at(-1) ?? 0) - data[0];
+  let stroke = 'var(--pf-t--global--text--color--subtle)';
+  if (trend > 0) stroke = pfSuccess;
+  else if (trend < 0) stroke = pfDanger;
 
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ display: 'block' }}
-      aria-hidden="true"
-    >
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-    </svg>
+    <div className="automation-health-sparkline">
+      <PageChartContainer height={48}>
+        {(size) => (
+          <Chart
+            width={size.width}
+            height={size.height}
+            padding={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          >
+            <ChartLine
+              data={chartData}
+              style={{ data: { stroke, strokeWidth: 2 } }}
+            />
+          </Chart>
+        )}
+      </PageChartContainer>
+    </div>
+  );
+}
+
+function JobSuccessDonut({
+  segments,
+  successPct,
+  successLabel,
+}: Readonly<{
+  segments: readonly { label: string; value: number; color: string }[];
+  successPct: number;
+  successLabel: string;
+}>) {
+  return (
+    <div className="automation-health-chart">
+      <PageChartContainer height={140}>
+        {(size) => (
+          <ChartDonut
+            ariaDesc={successLabel}
+            ariaTitle={successLabel}
+            constrainToVisibleArea
+            data={segments.map((segment) => ({ x: segment.label, y: segment.value }))}
+            colorScale={segments.map((segment) => segment.color)}
+            height={size.height}
+            width={size.width}
+            innerRadius={48}
+            title={`${successPct}%`}
+            subTitle={successLabel}
+            padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        )}
+      </PageChartContainer>
+    </div>
   );
 }
 
@@ -110,74 +150,8 @@ function DeltaLabel({
   );
 }
 
-function SvgDonut({
-  segments,
-  size = 140,
-  thickness = 20,
-  centerLabel,
-  centerSubLabel,
-}: Readonly<{
-  segments: readonly { value: number; color: string }[];
-  size?: number;
-  thickness?: number;
-  centerLabel: string;
-  centerSubLabel: string;
-}>) {
-  const total = segments.reduce((s, seg) => s + seg.value, 0);
-  const r = (size - thickness) / 2;
-  const circumference = 2 * Math.PI * r;
-  let offset = -circumference / 4;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {segments.map((seg) => {
-        const pct = total > 0 ? seg.value / total : 0;
-        const dashLen = pct * circumference;
-        const el = (
-          <circle
-            key={seg.color}
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={seg.color}
-            strokeWidth={thickness}
-            strokeDasharray={`${dashLen} ${circumference - dashLen}`}
-            strokeDashoffset={-offset}
-          />
-        );
-        offset += dashLen;
-        return el;
-      })}
-      <text x="50%" y="46%" textAnchor="middle" dominantBaseline="central" style={{ fontSize: 22, fontWeight: 700, fill: 'var(--pf-t--global--text--color--regular)' }}>
-        {centerLabel}
-      </text>
-      <text x="50%" y="62%" textAnchor="middle" dominantBaseline="central" style={{ fontSize: 11, fill: 'var(--pf-t--global--text--color--subtle)' }}>
-        {centerSubLabel}
-      </text>
-    </svg>
-  );
-}
-
-function FlameIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true">
-      <path d="M8 0C5.8 3.2 3 5.6 3 9a5 5 0 0 0 10 0c0-3.4-2.8-5.8-5-9ZM6.5 12a2 2 0 0 1-1-1.7c0-1.3 1-2.3 2.5-3.8.8.8 2.5 2.5 2.5 3.8A2 2 0 0 1 8.5 12Z" />
-    </svg>
-  );
-}
-
-function computeCurrentStreak(days: readonly { success: boolean }[]): number {
-  let count = 0;
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (!days[i].success) break;
-    count++;
-  }
-  return count;
-}
-
 function getStreakMilestone(streak: number): number | null {
-  const milestones = [30, 14, 7];
+  const milestones = [30, 7];
   for (const m of milestones) {
     if (streak >= m) return m;
   }
@@ -186,6 +160,7 @@ function getStreakMilestone(streak: number): number | null {
 
 export function AutomationHealthCard() {
   const { t } = useTranslation();
+  const { organizationFilterIds, periodScale, orgFilterScale } = usePostGaHighlightsFilters();
 
   const previewMode = useSyncExternalStore(
     subscribeDashboardSettings,
@@ -194,8 +169,51 @@ export function AutomationHealthCard() {
   );
   const isDay0 = isDemoMode() && previewMode === 'day0';
 
-  const currentStreak = useMemo(() => computeCurrentStreak(STREAK_HEAT_STRIP_DAYS), []);
+  const streakDays = useMemo(
+    () => getStreakDaysForFilter(organizationFilterIds),
+    [organizationFilterIds]
+  );
+  const currentStreak = useMemo(() => computeStreakLength(streakDays), [streakDays]);
   const streakMilestone = useMemo(() => getStreakMilestone(currentStreak), [currentStreak]);
+
+  const jobBreakdown = useMemo(
+    () => ({
+      successful: scaleByHighlightsFilters(JOB_SUCCESS_BREAKDOWN.successful, periodScale, orgFilterScale),
+      failed: scaleByHighlightsFilters(JOB_SUCCESS_BREAKDOWN.failed, periodScale, orgFilterScale),
+      error: scaleByHighlightsFilters(JOB_SUCCESS_BREAKDOWN.error, periodScale, orgFilterScale),
+      canceled: scaleByHighlightsFilters(JOB_SUCCESS_BREAKDOWN.canceled, periodScale, orgFilterScale),
+    }),
+    [orgFilterScale, periodScale]
+  );
+
+  const velocity = useMemo(
+    () => ({
+      avgRunsPerDay: scaleByHighlightsFilters(
+        AUTOMATION_VELOCITY.avgRunsPerDay,
+        periodScale,
+        orgFilterScale
+      ),
+      previousAvg: scaleByHighlightsFilters(
+        AUTOMATION_VELOCITY.previousAvg,
+        periodScale,
+        orgFilterScale
+      ),
+      dailyRuns: AUTOMATION_VELOCITY.dailyRuns.map((value) =>
+        scaleByHighlightsFilters(value, periodScale, orgFilterScale)
+      ),
+    }),
+    [orgFilterScale, periodScale]
+  );
+
+  const templateReuse = useMemo(
+    () => ({
+      usedOnce: Math.max(0, Math.round(TEMPLATE_REUSE.usedOnce * orgFilterScale)),
+      usedMultiple: Math.max(0, Math.round(TEMPLATE_REUSE.usedMultiple * orgFilterScale)),
+      total: Math.max(1, Math.round(TEMPLATE_REUSE.total * orgFilterScale)),
+      reusePct: TEMPLATE_REUSE.reusePct,
+    }),
+    [orgFilterScale]
+  );
 
   if (isDay0) {
     return (
@@ -217,17 +235,17 @@ export function AutomationHealthCard() {
   }
 
   const total =
-    JOB_SUCCESS_BREAKDOWN.successful +
-    JOB_SUCCESS_BREAKDOWN.failed +
-    JOB_SUCCESS_BREAKDOWN.error +
-    JOB_SUCCESS_BREAKDOWN.canceled;
-  const successPct = Math.round((JOB_SUCCESS_BREAKDOWN.successful / total) * 100);
+    jobBreakdown.successful +
+    jobBreakdown.failed +
+    jobBreakdown.error +
+    jobBreakdown.canceled;
+  const successPct = Math.round((jobBreakdown.successful / total) * 100);
 
   const donutSegments = [
-    { value: JOB_SUCCESS_BREAKDOWN.successful, color: '#3e8635' },
-    { value: JOB_SUCCESS_BREAKDOWN.failed, color: '#c9190b' },
-    { value: JOB_SUCCESS_BREAKDOWN.error, color: '#f0ab00' },
-    { value: JOB_SUCCESS_BREAKDOWN.canceled, color: '#06c' },
+    { label: t('Successful'), value: jobBreakdown.successful, color: JOB_OUTCOME_COLORS.successful },
+    { label: t('Failed'), value: jobBreakdown.failed, color: JOB_OUTCOME_COLORS.failed },
+    { label: t('Error'), value: jobBreakdown.error, color: JOB_OUTCOME_COLORS.error },
+    { label: t('Canceled'), value: jobBreakdown.canceled, color: JOB_OUTCOME_COLORS.canceled },
   ] as const;
 
   return (
@@ -250,19 +268,14 @@ export function AutomationHealthCard() {
                 help={t('Breakdown of job outcomes across all runs in the selected period.')}
               />
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 8 }}>
-                <SvgDonut
+                <JobSuccessDonut
                   segments={donutSegments}
-                  centerLabel={`${successPct}%`}
-                  centerSubLabel={t('success')}
+                  successPct={successPct}
+                  successLabel={t('success')}
                 />
                 <div style={{ fontSize: 'var(--pf-t--global--font--size--sm)' }}>
                   <Flex direction={{ default: 'column' }} gap={{ default: 'gapXs' }}>
-                    {[
-                      { color: donutSegments[0].color, label: t('Successful'), value: JOB_SUCCESS_BREAKDOWN.successful },
-                      { color: donutSegments[1].color, label: t('Failed'), value: JOB_SUCCESS_BREAKDOWN.failed },
-                      { color: donutSegments[2].color, label: t('Error'), value: JOB_SUCCESS_BREAKDOWN.error },
-                      { color: donutSegments[3].color, label: t('Canceled'), value: JOB_SUCCESS_BREAKDOWN.canceled },
-                    ].map((item) => (
+                    {donutSegments.map((item) => (
                       <FlexItem key={item.label}>
                         <span style={{ color: item.color }}>●</span>
                         {' '}{item.label}: {item.value.toLocaleString()}
@@ -284,7 +297,7 @@ export function AutomationHealthCard() {
                 <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapMd' }}>
                   <FlexItem>
                     <Title headingLevel="h2" size="2xl" style={{ lineHeight: 1.1 }}>
-                      {AUTOMATION_VELOCITY.avgRunsPerDay}
+                      {velocity.avgRunsPerDay}
                     </Title>
                   </FlexItem>
                   <FlexItem>
@@ -293,14 +306,14 @@ export function AutomationHealthCard() {
                     </span>
                   </FlexItem>
                   <FlexItem>
-                    <DeltaLabel current={AUTOMATION_VELOCITY.avgRunsPerDay} previous={AUTOMATION_VELOCITY.previousAvg} />
+                    <DeltaLabel current={velocity.avgRunsPerDay} previous={velocity.previousAvg} />
                   </FlexItem>
                 </Flex>
                 <div style={{ marginTop: 12, color: 'var(--pf-t--global--text--color--subtle)', fontSize: 'var(--pf-t--global--font--size--sm)' }}>
-                  {t('Previous period: {{prev}} runs/day', { prev: AUTOMATION_VELOCITY.previousAvg })}
+                  {t('Previous period: {{prev}} runs/day', { prev: velocity.previousAvg })}
                 </div>
                 <div style={{ marginTop: 8 }}>
-                  <VelocitySparkline data={AUTOMATION_VELOCITY.dailyRuns} />
+                  <VelocitySparkline data={velocity.dailyRuns} />
                 </div>
                 <div style={{ color: 'var(--pf-t--global--text--color--subtle)', fontSize: 'var(--pf-t--global--font--size--xs)', marginTop: 4 }}>
                   {t('Last 14 days')}
@@ -319,7 +332,7 @@ export function AutomationHealthCard() {
                 <Flex alignItems={{ default: 'alignItemsBaseline' }} gap={{ default: 'gapMd' }}>
                   <FlexItem>
                     <Title headingLevel="h2" size="2xl" style={{ lineHeight: 1.1 }}>
-                      {TEMPLATE_REUSE.reusePct}%
+                      {templateReuse.reusePct}%
                     </Title>
                   </FlexItem>
                   <FlexItem>
@@ -340,7 +353,7 @@ export function AutomationHealthCard() {
                   >
                     <div
                       style={{
-                        width: `${TEMPLATE_REUSE.reusePct}%`,
+                        width: `${templateReuse.reusePct}%`,
                         backgroundColor: 'var(--pf-t--global--color--status--success--default)',
                         borderRadius: 6,
                         transition: 'width 0.3s ease',
@@ -355,14 +368,14 @@ export function AutomationHealthCard() {
                 >
                   <FlexItem>
                     <span style={{ color: 'var(--pf-t--global--color--status--success--default)' }}>●</span>
-                    {' '}{t('Reused (2+ runs)')}: {TEMPLATE_REUSE.usedMultiple}
+                    {' '}{t('Reused (2+ runs)')}: {templateReuse.usedMultiple}
                   </FlexItem>
                   <FlexItem>
                     <span style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>●</span>
-                    {' '}{t('Used once')}: {TEMPLATE_REUSE.usedOnce}
+                    {' '}{t('Used once')}: {templateReuse.usedOnce}
                   </FlexItem>
                   <FlexItem style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>
-                    {t('{{total}} templates total', { total: TEMPLATE_REUSE.total })}
+                    {t('{{total}} templates total', { total: templateReuse.total })}
                   </FlexItem>
                 </Flex>
               </div>
@@ -381,7 +394,7 @@ export function AutomationHealthCard() {
               help={t('Shows whether you had at least one successful job run each day over the last 30 days. Green means at least one successful run that day. Gray means no successful runs.')}
             />
             {currentStreak > 0 && (
-              <Label color="orange" isCompact icon={<FlameIcon />}>
+              <Label color="orange" isCompact icon={<FireIcon />}>
                 {t('{{count}}-day streak', { count: currentStreak })}
               </Label>
             )}
@@ -397,7 +410,7 @@ export function AutomationHealthCard() {
             flexWrap={{ default: 'wrap' }}
             style={{ width: '100%', marginTop: 8 }}
           >
-            {STREAK_HEAT_STRIP_DAYS.map((day) => (
+            {streakDays.map((day) => (
               <Tooltip
                 key={day.dateStr}
                 content={

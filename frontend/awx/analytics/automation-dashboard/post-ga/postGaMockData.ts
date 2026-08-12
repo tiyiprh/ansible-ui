@@ -1,7 +1,7 @@
-export const HIGHLIGHTS = { organizationsActive: 10, templatesInUse: 10, runsThisMonth: 7200 };
+export const HIGHLIGHTS = { organizationsActive: 12, templatesInUse: 10, runsThisMonth: 7200 };
 export const ORGANIZATIONS_TOTAL = 15;
 export const TEMPLATES_TOTAL = 15;
-export const QUARTERLY_GOAL = { target: 15000, current: 9840 };
+export const QUARTERLY_GOAL = { target: 15000, current: 7500 };
 export const COST_SAVINGS_AT_GLANCE = { thisMonth: 3200, goal: 5000, lastMonth: 2000 };
 export const MATURITY_LEVEL = 3;
 /** @deprecated Use MATURITY_LEVEL — GA UI shows integer level only, not a decimal score */
@@ -35,13 +35,14 @@ export const FILTER_ORGANIZATIONS = [
 export const STREAK_HEAT_STRIP_DAYS = (() => {
   const days: { dateStr: string; success: boolean; runs: number }[] = [];
   const now = new Date();
+  // Last 14 days success for Daily Streak silver tier demo; day before streak breaks.
   const successByIndex = [
     true, false, true, true, false, true, false, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, false, true, true, true, false, true, true, true, true,
+    false, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
   ];
   const runsByIndex = [
-    125, 0, 98, 210, 0, 45, 0, 88, 156, 203, 189, 244, 167, 221, 198, 176, 134, 212, 155, 178,
-    142, 0, 165, 199, 88, 0, 112, 201, 167, 190,
+    125, 0, 98, 210, 0, 45, 0, 88, 156, 203, 189, 244, 167, 221, 198, 0, 134, 212, 155, 178,
+    142, 165, 199, 88, 112, 201, 167, 190, 205, 188,
   ];
   for (let i = STREAK_PERIOD_DAYS - 1; i >= 0; i--) {
     const d = new Date(now);
@@ -56,10 +57,10 @@ export const STREAK_HEAT_STRIP_DAYS = (() => {
   return days;
 })();
 
-export const QUARTER_COMPARISON = {
-  runs: { current: 9840, previous: 7200 },
-  savings: { current: 3200, previous: 2000 },
-  hosts: { current: 1247, previous: 980 },
+export const WEEK_COMPARISON = {
+  runs: { current: 1840, previous: 1520 },
+  savings: { current: 780, previous: 620 },
+  hosts: { current: 1247, previous: 1190 },
 };
 
 export const SPARKLINE_DATA = {
@@ -69,40 +70,40 @@ export const SPARKLINE_DATA = {
 };
 
 export const topOrganizations = [
-  { orgName: 'Platform Engineering', jobRuns: 2840, isYourOrg: true, trend: 'up' as const },
-  { orgName: 'Security Operations', jobRuns: 1923, trend: 'up' as const },
-  { orgName: 'Cloud Infrastructure', jobRuns: 1654, trend: 'down' as const },
-  { orgName: 'Application Development', jobRuns: 1201, trend: 'steady' as const },
-  { orgName: 'Data Analytics', jobRuns: 987, trend: 'up' as const },
-  { orgName: 'Network Services', jobRuns: 756, trend: 'down' as const },
-  { orgName: 'DevOps Enablement', jobRuns: 534, trend: 'steady' as const },
-  { orgName: 'Quality Assurance', jobRuns: 412, trend: 'up' as const },
-  { orgName: 'Release Management', jobRuns: 298, trend: 'down' as const },
-  { orgName: 'IT Operations', jobRuns: 187, trend: 'steady' as const },
+  { orgName: 'Platform Engineering', execution_count: 2840, trend: 'up' as const },
+  { orgName: 'Security Operations', execution_count: 1923, trend: 'up' as const },
+  { orgName: 'Cloud Infrastructure', execution_count: 1654, trend: 'down' as const },
+  { orgName: 'Application Development', execution_count: 1201, trend: 'steady' as const },
+  { orgName: 'Data Analytics', execution_count: 987, trend: 'down' as const },
+  { orgName: 'Network Services', execution_count: 756, trend: 'down' as const },
+  { orgName: 'DevOps Enablement', execution_count: 534, trend: 'steady' as const },
+  { orgName: 'Quality Assurance', execution_count: 412, trend: 'steady' as const },
+  { orgName: 'Release Management', execution_count: 298, trend: 'down' as const },
+  { orgName: 'IT Operations', execution_count: 187, trend: 'steady' as const },
 ];
 
 export const topTemplates = [
-  { templateName: 'Infrastructure provisioning', runCount: 1247, org: 'Platform Engineering', trend: 'up' as const },
-  { templateName: 'Security compliance scan', runCount: 892, org: 'Security Operations', trend: 'steady' as const },
-  { templateName: 'Application deployment', runCount: 756, org: 'Platform Engineering', trend: 'up' as const },
-  { templateName: 'Backup and restore', runCount: 534, org: 'Cloud Infrastructure', trend: 'down' as const },
-  { templateName: 'Patch management', runCount: 412, org: 'Security Operations', trend: 'up' as const },
+  { templateName: 'Infrastructure provisioning', execution_count: 1247, org: 'Platform Engineering', trend: 'up' as const },
+  { templateName: 'Security compliance scan', execution_count: 892, org: 'Security Operations', trend: 'steady' as const },
+  { templateName: 'Application deployment', execution_count: 756, org: 'Platform Engineering', trend: 'up' as const },
+  { templateName: 'Backup and restore', execution_count: 534, org: 'Cloud Infrastructure', trend: 'down' as const },
+  { templateName: 'Patch management', execution_count: 412, org: 'Security Operations', trend: 'up' as const },
 ];
 
 export const topProjects = [
-  { projectName: 'Project A', totalJobs: 24, org: 'Platform Engineering', trend: 'up' as const },
-  { projectName: 'Project B', totalJobs: 18, org: 'Security Operations', trend: 'steady' as const },
-  { projectName: 'Project C', totalJobs: 12, org: 'Cloud Infrastructure', trend: 'down' as const },
-  { projectName: 'Project D', totalJobs: 10, org: 'Application Development', trend: 'up' as const },
-  { projectName: 'Project E', totalJobs: 8, org: 'Platform Engineering', trend: 'steady' as const },
+  { projectName: 'Main project', execution_count: 2840, org: 'Platform Engineering', trend: 'up' as const },
+  { projectName: 'CI/CD pipeline', execution_count: 1923, org: 'Security Operations', trend: 'up' as const },
+  { projectName: 'POC - Automation', execution_count: 1654, org: 'Cloud Infrastructure', trend: 'down' as const },
+  { projectName: 'Legacy migration', execution_count: 1201, org: 'Application Development', trend: 'steady' as const },
+  { projectName: 'Security audit', execution_count: 987, org: 'Data Analytics', trend: 'up' as const },
 ];
 
 export const topUsers = [
-  { userName: 'jsmith', displayName: 'John Smith', jobRuns: 487, org: 'Platform Engineering', trend: 'up' as const },
-  { userName: 'agarcia', displayName: 'Ana Garcia', jobRuns: 342, org: 'Security Operations', trend: 'steady' as const },
-  { userName: 'mchen', displayName: 'Michael Chen', jobRuns: 278, org: 'Cloud Infrastructure', trend: 'up' as const },
-  { userName: 'kwilson', displayName: 'Karen Wilson', jobRuns: 195, org: 'Platform Engineering', trend: 'down' as const },
-  { userName: 'rpatel', displayName: 'Raj Patel', jobRuns: 163, org: 'Data Analytics', trend: 'up' as const },
+  { userName: 'jsmith', displayName: 'John Smith', execution_count: 487, org: 'Platform Engineering', trend: 'up' as const },
+  { userName: 'agarcia', displayName: 'Ana Garcia', execution_count: 342, org: 'Security Operations', trend: 'steady' as const },
+  { userName: 'mchen', displayName: 'Michael Chen', execution_count: 278, org: 'Cloud Infrastructure', trend: 'up' as const },
+  { userName: 'kwilson', displayName: 'Karen Wilson', execution_count: 195, org: 'Platform Engineering', trend: 'down' as const },
+  { userName: 'rpatel', displayName: 'Raj Patel', execution_count: 163, org: 'Data Analytics', trend: 'up' as const },
 ];
 
 export const JOB_SUCCESS_BREAKDOWN = {
@@ -123,6 +124,21 @@ export const TEMPLATE_REUSE = {
   usedMultiple: 12,
   total: 15,
   reusePct: 80,
+};
+
+/** Mock inputs for achievement badges — replace with metrics service rollups in product. */
+export const ACHIEVEMENT_METRICS = {
+  /** Consecutive calendar days with zero failed or errored jobs platform-wide. */
+  cleanWeekConsecutiveDays: 5,
+  /** Platform job success rate (%) for the current and previous 7-day windows. */
+  recoverySuccessRateCurrent: 99,
+  recoverySuccessRatePrevious: 87,
+  /** Largest org share of total job runs in the selected period. */
+  largestOrgSharePct: 32,
+  largestOrgName: 'Platform Engineering',
+  /** Highest single-instance share of total job runs in the selected period. */
+  maxInstanceSharePct: 68,
+  busiestInstanceName: 'controller-01',
 };
 
 export type ManageViewPanel = {

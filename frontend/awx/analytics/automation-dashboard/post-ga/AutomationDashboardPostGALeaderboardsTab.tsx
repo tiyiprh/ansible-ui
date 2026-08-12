@@ -8,8 +8,8 @@ export function AutomationDashboardPostGALeaderboardsTab() {
   const { t } = useTranslation();
 
   useRegisterPrototypeNotes({
-    id: 'post-ga-highlights',
-    title: t('Highlights'),
+    id: 'post-ga-leaderboards',
+    title: t('Leaderboards'),
     content: <PostGaHighlightsPrototypeNote defaultOpen />,
   });
 
