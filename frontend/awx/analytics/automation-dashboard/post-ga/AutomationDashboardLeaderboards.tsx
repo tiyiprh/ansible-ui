@@ -12,9 +12,9 @@ import {
   CardHeader,
   EmptyState,
   EmptyStateBody,
-  Flex,
   Grid,
   GridItem,
+  Icon,
   Label,
   Title,
   Toolbar,
@@ -22,10 +22,16 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { CogIcon } from '@patternfly/react-icons';
+import {
+  CogIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  MinusIcon,
+  TrophyIcon,
+} from '@patternfly/react-icons';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { Dispatch, ReactNode, SetStateAction, useCallback, useMemo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutomationDashboardToolbar } from '../components';
 import { AutomationDashboardDateRangeFilterPresets } from '../constants';
@@ -34,12 +40,29 @@ import {
   topOrganizations,
   topProjects,
   topTemplates,
+  topUsers,
 } from './postGaMockData';
-import { getEffectiveGoalTargets, shouldUseGoalTargetsForDisplay } from './dashboardSettingsUtils';
 import { DashboardAtAGlanceCard } from './DashboardAtAGlanceCard';
 import { DashboardGoalsCard } from './DashboardGoalsCard';
 import { usePostGADashboardPeriodFilter } from './PostGADashboardFilterContext';
 import { useManagedLeaderboardPanels } from './useManagedLeaderboardPanels';
+import { AutomationHealthCard } from './AutomationHealthCard';
+import {
+  getGoalsPreviewMode,
+  isDemoMode,
+  subscribeDashboardSettings,
+} from './dashboardSettingsUtils';
+
+function getFilteredEmptyBody(
+  t: (key: string, options?: Record<string, string>) => string,
+  viewFilter: string | null,
+  resource: string
+): string {
+  if (viewFilter) {
+    return t(`No ${resource} data for {{org}} in the selected period.`, { org: viewFilter });
+  }
+  return t(`No ${resource} data for the selected period.`);
+}
 
 function getPeriodScale(period: string[] | undefined): number {
   const preset = period?.[0];
@@ -58,20 +81,6 @@ function getPeriodScale(period: string[] | undefined): number {
     default:
       return 1;
   }
-}
-
-function formatGoalMetPercent(
-  useGoalTargets: boolean,
-  quarterlyRunTarget: number,
-  jobRuns: number
-): string {
-  if (!useGoalTargets) {
-    return '—';
-  }
-  if (quarterlyRunTarget <= 0) {
-    return '0%';
-  }
-  return `${((jobRuns / quarterlyRunTarget) * 100).toFixed(1)}%`;
 }
 
 function LeaderboardPanelCard({
@@ -120,6 +129,109 @@ function LeaderboardPanelCard({
       </CardBody>
     </Card>
   );
+}
+
+const RANK_BG_COLORS_LIGHT = [
+  'rgba(240, 195, 0, 0.08)',
+  'rgba(192, 192, 192, 0.10)',
+  'rgba(205, 133, 63, 0.08)',
+] as const;
+
+const RANK_BG_COLORS_DARK = [
+  'rgba(240, 195, 0, 0.15)',
+  'rgba(192, 192, 192, 0.12)',
+  'rgba(205, 133, 63, 0.12)',
+] as const;
+
+function isDarkTheme(): boolean {
+  return document.documentElement.classList.contains('pf-v6-theme-dark');
+}
+
+function getRankBgColor(position: number): string {
+  const colors = isDarkTheme() ? RANK_BG_COLORS_DARK : RANK_BG_COLORS_LIGHT;
+  return colors[position - 1];
+}
+
+function getRankRowStyle(
+  position: number,
+  isYourOrg?: boolean
+): React.CSSProperties | undefined {
+  if (position <= 3) {
+    const style: React.CSSProperties = { backgroundColor: getRankBgColor(position) };
+    if (isYourOrg) {
+      style.boxShadow = 'inset 3px 0 0 var(--pf-t--global--color--brand--default)';
+    }
+    return style;
+  }
+  if (isYourOrg) {
+    return {
+      backgroundColor: 'var(--pf-t--global--background--color--primary--default)',
+    };
+  }
+  return undefined;
+}
+
+function RankBadge({ position }: Readonly<{ position: number }>) {
+  if (position === 1) {
+    return (
+      <Label color="gold" isCompact icon={<TrophyIcon />}>
+        {'#1'}
+      </Label>
+    );
+  }
+  if (position === 2) {
+    return (
+      <Label
+        isCompact
+        style={{ '--pf-v6-c-label--BackgroundColor': isDarkTheme() ? 'rgba(192, 192, 192, 0.25)' : '#e8e8e8' } as React.CSSProperties}
+      >
+        {'#2'}
+      </Label>
+    );
+  }
+  if (position === 3) {
+    return (
+      <Label
+        isCompact
+        style={{ '--pf-v6-c-label--BackgroundColor': isDarkTheme() ? 'rgba(205, 133, 63, 0.25)' : '#f0d9b5' } as React.CSSProperties}
+      >
+        {'#3'}
+      </Label>
+    );
+  }
+  return (
+    <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: 24, display: 'inline-block' }}>
+      #{position}
+    </span>
+  );
+}
+
+function TrendArrow({ trend }: Readonly<{ trend: 'up' | 'down' | 'steady' }>) {
+  switch (trend) {
+    case 'up':
+      return (
+        <Icon status="success" size="sm">
+          <ArrowUpIcon />
+        </Icon>
+      );
+    case 'down':
+      return (
+        <Icon status="danger" size="sm">
+          <ArrowDownIcon />
+        </Icon>
+      );
+    case 'steady':
+    default:
+      return (
+        <Icon size="sm" style={{ color: 'var(--pf-t--global--icon--color--subtle)' }}>
+          <MinusIcon />
+        </Icon>
+      );
+  }
+}
+
+function isTopThree(index: number): boolean {
+  return index < 3;
 }
 
 const LEADERBOARD_ORG_FILTER_DEFAULTS: IFilterState = {
@@ -181,8 +293,6 @@ export function AutomationDashboardLeaderboards() {
   );
 
   const periodScale = getPeriodScale(period);
-  const useGoalTargets = shouldUseGoalTargetsForDisplay();
-  const quarterlyRunTarget = useGoalTargets ? getEffectiveGoalTargets().quarterlyRunTarget : 0;
 
   const viewFilter =
     filterState.organization?.[0] === 'View all' ? null : (filterState.organization?.[0] ?? null);
@@ -215,9 +325,41 @@ export function AutomationDashboardLeaderboards() {
     return scaled.filter((r) => r.org === viewFilter);
   }, [viewFilter, periodScale]);
 
-  const emptyOrgBody = viewFilter
-    ? t('No organization data for {{org}} in the selected period.', { org: viewFilter })
-    : t('No organization data for the selected period.');
+  const filteredUsers = useMemo(() => {
+    const scaled = topUsers.map((row) => ({
+      ...row,
+      jobRuns: Math.round(row.jobRuns * periodScale),
+    }));
+    if (!viewFilter) return scaled.slice(0, 5);
+    return scaled.filter((r) => r.org === viewFilter).slice(0, 5);
+  }, [viewFilter, periodScale]);
+
+  const previewMode = useSyncExternalStore(
+    subscribeDashboardSettings,
+    getGoalsPreviewMode,
+    getGoalsPreviewMode
+  );
+  const isDay0 = isDemoMode() && previewMode === 'day0';
+
+  const orgsToShow = isDay0 ? [] : filteredOrganizations;
+  const templatesToShow = isDay0 ? [] : filteredTemplates;
+  const projectsToShow = isDay0 ? [] : filteredProjects;
+  const usersToShow = isDay0 ? [] : filteredUsers;
+
+  const day0EmptyBody = t('Leaderboard data will appear after your first automation runs.');
+
+  const emptyOrgBody = isDay0
+    ? day0EmptyBody
+    : getFilteredEmptyBody(t, viewFilter, 'organization');
+  const emptyTemplateBody = isDay0
+    ? day0EmptyBody
+    : getFilteredEmptyBody(t, viewFilter, 'template');
+  const emptyProjectBody = isDay0
+    ? day0EmptyBody
+    : getFilteredEmptyBody(t, viewFilter, 'project');
+  const emptyUserBody = isDay0
+    ? day0EmptyBody
+    : t('User run data for the selected period will appear here when available.');
 
   return (
     <>
@@ -249,9 +391,13 @@ export function AutomationDashboardLeaderboards() {
         </ToolbarContent>
       </Toolbar>
 
+      <div style={{ flexShrink: 0 }}>
+        <AutomationHealthCard />
+      </div>
+
       <div className="post-ga-goals-row" style={{ marginBottom: 24 }}>
-        <DashboardGoalsCard />
         <DashboardAtAGlanceCard />
+        <DashboardGoalsCard />
       </div>
 
       <Grid hasGutter>
@@ -263,35 +409,46 @@ export function AutomationDashboardLeaderboards() {
                   id="leaderboard-orgs-card"
                   title={t('Top 5 organizations')}
                   help={t(
-                    'Organizations ranked by percentage of quarterly automation goal met in the selected period.'
+                    'Organizations ranked by total automation job runs in the selected period.'
                   )}
-                  isEmpty={filteredOrganizations.length === 0}
+                  isEmpty={orgsToShow.length === 0}
                   emptyTitle={t('No data')}
                   emptyBody={emptyOrgBody}
                 >
                   <Table variant="compact" aria-label={t('Top organizations')}>
                     <Thead>
                       <Tr>
+                        <Th style={{ width: 48 }}>{t('Rank')}</Th>
                         <Th>{t('Organization')}</Th>
-                        <Th>{t('Percentage of goal met')}</Th>
+                        <Th>{t('Job runs')}</Th>
+                        <Th style={{ width: 80, minWidth: 80 }}>{t('Trend')}</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredOrganizations.map((row) => (
-                        <Tr key={row.orgName}>
-                          <Td dataLabel={t('Organization')}>
-                            <Flex
-                              alignItems={{ default: 'alignItemsCenter' }}
-                              gap={{ default: 'gapSm' }}
-                            >
-                              <Button variant="link" isInline>
-                                {row.orgName}
-                              </Button>
-                              {row.isYourOrg && <Label color="blue">{t('Yours')}</Label>}
-                            </Flex>
+                      {orgsToShow.map((row, index) => (
+                        <Tr key={row.orgName} style={getRankRowStyle(index + 1, row.isYourOrg)}>
+                          <Td dataLabel={t('Rank')}>
+                            <RankBadge position={index + 1} />
                           </Td>
-                          <Td dataLabel={t('Percentage of goal met')}>
-                            {formatGoalMetPercent(useGoalTargets, quarterlyRunTarget, row.jobRuns)}
+                          <Td
+                            dataLabel={t('Organization')}
+                            style={isTopThree(index) ? { fontWeight: 700 } : undefined}
+                          >
+                            <Button variant="link" isInline>
+                              {row.orgName}
+                            </Button>
+                            {row.isYourOrg && (
+                              <>
+                                {' '}
+                                <Label color="blue" isCompact>
+                                  {t('You')}
+                                </Label>
+                              </>
+                            )}
+                          </Td>
+                          <Td dataLabel={t('Job runs')}>{row.jobRuns.toLocaleString()}</Td>
+                          <Td dataLabel={t('Trend')}>
+                            <TrendArrow trend={row.trend} />
                           </Td>
                         </Tr>
                       ))}
@@ -309,32 +466,38 @@ export function AutomationDashboardLeaderboards() {
                   id="leaderboard-templates-card"
                   title={t('Top 5 templates')}
                   help={t('Job templates ranked by number of runs in the selected period.')}
-                  isEmpty={filteredTemplates.length === 0}
+                  isEmpty={templatesToShow.length === 0}
                   emptyTitle={t('No data')}
-                  emptyBody={
-                    viewFilter
-                      ? t('No template data for {{org}} in the selected period.', {
-                          org: viewFilter,
-                        })
-                      : t('No template data for the selected period.')
+                  emptyBody={emptyTemplateBody
                   }
                 >
                   <Table variant="compact" aria-label={t('Top templates')}>
                     <Thead>
                       <Tr>
+                        <Th style={{ width: 48 }}>{t('Rank')}</Th>
                         <Th>{t('Template')}</Th>
                         <Th>{t('Runs')}</Th>
+                        <Th style={{ width: 80, minWidth: 80 }}>{t('Trend')}</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredTemplates.map((row) => (
-                        <Tr key={row.templateName}>
-                          <Td dataLabel={t('Template')}>
+                      {templatesToShow.map((row, index) => (
+                        <Tr key={row.templateName} style={getRankRowStyle(index + 1)}>
+                          <Td dataLabel={t('Rank')}>
+                            <RankBadge position={index + 1} />
+                          </Td>
+                          <Td
+                            dataLabel={t('Template')}
+                            style={isTopThree(index) ? { fontWeight: 700 } : undefined}
+                          >
                             <Button variant="link" isInline>
                               {row.templateName}
                             </Button>
                           </Td>
                           <Td dataLabel={t('Runs')}>{row.runCount.toLocaleString()}</Td>
+                          <Td dataLabel={t('Trend')}>
+                            <TrendArrow trend={row.trend} />
+                          </Td>
                         </Tr>
                       ))}
                     </Tbody>
@@ -351,32 +514,37 @@ export function AutomationDashboardLeaderboards() {
                   id="leaderboard-projects-card"
                   title={t('Top 5 projects')}
                   help={t('Projects ranked by total number of jobs in the selected period.')}
-                  isEmpty={filteredProjects.length === 0}
+                  isEmpty={projectsToShow.length === 0}
                   emptyTitle={t('No data')}
-                  emptyBody={
-                    viewFilter
-                      ? t('No project data for {{org}} in the selected period.', {
-                          org: viewFilter,
-                        })
-                      : t('No project data for the selected period.')
-                  }
+                  emptyBody={emptyProjectBody}
                 >
                   <Table variant="compact" aria-label={t('Top projects')}>
                     <Thead>
                       <Tr>
+                        <Th style={{ width: 48 }}>{t('Rank')}</Th>
                         <Th>{t('Project')}</Th>
                         <Th>{t('Jobs')}</Th>
+                        <Th style={{ width: 80, minWidth: 80 }}>{t('Trend')}</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredProjects.map((row) => (
-                        <Tr key={row.projectName}>
-                          <Td dataLabel={t('Project')}>
+                      {projectsToShow.map((row, index) => (
+                        <Tr key={row.projectName} style={getRankRowStyle(index + 1)}>
+                          <Td dataLabel={t('Rank')}>
+                            <RankBadge position={index + 1} />
+                          </Td>
+                          <Td
+                            dataLabel={t('Project')}
+                            style={isTopThree(index) ? { fontWeight: 700 } : undefined}
+                          >
                             <Button variant="link" isInline>
                               {row.projectName}
                             </Button>
                           </Td>
-                          <Td dataLabel={t('Jobs')}>{row.totalJobs}</Td>
+                          <Td dataLabel={t('Jobs')}>{row.totalJobs.toLocaleString()}</Td>
+                          <Td dataLabel={t('Trend')}>
+                            <TrendArrow trend={row.trend} />
+                          </Td>
                         </Tr>
                       ))}
                     </Tbody>
@@ -395,13 +563,41 @@ export function AutomationDashboardLeaderboards() {
                   help={t(
                     'Users ranked by the automation runs they triggered in the selected period.'
                   )}
-                  isEmpty
+                  isEmpty={usersToShow.length === 0}
                   emptyTitle={t('No user data')}
-                  emptyBody={t(
-                    'User run data for the selected period will appear here when available.'
-                  )}
+                  emptyBody={emptyUserBody}
                 >
-                  {null}
+                  <Table variant="compact" aria-label={t('Top users')}>
+                    <Thead>
+                      <Tr>
+                        <Th style={{ width: 48 }}>{t('Rank')}</Th>
+                        <Th>{t('User')}</Th>
+                        <Th>{t('Job runs')}</Th>
+                        <Th style={{ width: 80, minWidth: 80 }}>{t('Trend')}</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {usersToShow.map((row, index) => (
+                        <Tr key={row.userName} style={getRankRowStyle(index + 1)}>
+                          <Td dataLabel={t('Rank')}>
+                            <RankBadge position={index + 1} />
+                          </Td>
+                          <Td
+                            dataLabel={t('User')}
+                            style={isTopThree(index) ? { fontWeight: 700 } : undefined}
+                          >
+                            <Button variant="link" isInline>
+                              {row.displayName}
+                            </Button>
+                          </Td>
+                          <Td dataLabel={t('Job runs')}>{row.jobRuns.toLocaleString()}</Td>
+                          <Td dataLabel={t('Trend')}>
+                            <TrendArrow trend={row.trend} />
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
                 </LeaderboardPanelCard>
               </GridItem>
             );
@@ -410,6 +606,7 @@ export function AutomationDashboardLeaderboards() {
           return null;
         })}
       </Grid>
+
     </>
   );
 }

@@ -1,11 +1,18 @@
-import { Flex, Switch } from '@patternfly/react-core';
+import { Flex, FormGroup, FormSelect, FormSelectOption } from '@patternfly/react-core';
 import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  GoalsPreviewMode,
   getGoalsPreviewMode,
   setGoalsPreviewMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
+
+const MODES: readonly { value: GoalsPreviewMode; label: string }[] = [
+  { value: 'configured', label: 'Populated' },
+  { value: 'empty', label: 'First quarter (no history)' },
+  { value: 'day0', label: 'Day 0 (no data)' },
+];
 
 export function GoalsPreviewControl() {
   const { t } = useTranslation();
@@ -14,39 +21,22 @@ export function GoalsPreviewControl() {
     getGoalsPreviewMode,
     getGoalsPreviewMode
   );
-  const isPopulated = previewMode === 'configured';
 
   return (
-    <Flex direction={{ default: 'column' }} gap={{ default: 'gapSm' }}>
-      <span style={{ fontWeight: 700, textTransform: 'none' }}>{t('Goals')}</span>
-      <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }} wrap="wrap">
-        <span
-          style={{
-            fontWeight: 400,
-            textTransform: 'none',
-            opacity: isPopulated ? 0.55 : 1,
-          }}
+    <Flex direction={{ default: 'column' }} gap={{ default: 'gapXs' }}>
+      <FormGroup label={t('Dashboard data')} fieldId="dashboard-data-mode">
+        <FormSelect
+          id="dashboard-data-mode"
+          value={previewMode}
+          onChange={(_event, value) => setGoalsPreviewMode(value as GoalsPreviewMode)}
+          aria-label={t('Dashboard data state')}
+          style={{ fontSize: 13 }}
         >
-          {t('Empty state')}
-        </span>
-        <Switch
-          aria-label={t('Toggle goals preview between empty state and populated')}
-          isChecked={isPopulated}
-          hasCheckIcon
-          onChange={(_event, checked) => {
-            setGoalsPreviewMode(checked ? 'configured' : 'empty');
-          }}
-        />
-        <span
-          style={{
-            fontWeight: 400,
-            textTransform: 'none',
-            opacity: isPopulated ? 1 : 0.55,
-          }}
-        >
-          {t('Populated')}
-        </span>
-      </Flex>
+          {MODES.map((mode) => (
+            <FormSelectOption key={mode.value} value={mode.value} label={t(mode.label)} />
+          ))}
+        </FormSelect>
+      </FormGroup>
     </Flex>
   );
 }

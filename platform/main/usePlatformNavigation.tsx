@@ -280,31 +280,8 @@ function buildDemoNavigation(allItems: PageNavigationItem[]): PageNavigationItem
     }
   }
 
-  // Reveal Settings (contains Automation Analytics → Dashboard settings)
-  // The Settings group uses AwxRoute.Settings as its id (see usePlatformSettingsNavigation)
-  const settingsId = AwxRoute.Settings as string;
-  const settingsItem = findNavigationItemById(items, settingsId);
-  if (settingsItem) {
-    (settingsItem as PageNavigationItem & { hidden: boolean }).hidden = false;
-    if ('children' in settingsItem && Array.isArray(settingsItem.children)) {
-      settingsItem.children = settingsItem.children.map((child) => {
-        if (child.id === (PlatformRoute.AutomationAnalyticsSettings as string)) {
-          return {
-            ...child,
-            hidden: false,
-            children:
-              'children' in child && Array.isArray(child.children)
-                ? child.children.map((grandchild: PageNavigationItem) => ({
-                    ...grandchild,
-                    hidden: grandchild.id !== (PlatformRoute.AutomationDashboardSettings as string),
-                  }))
-                : child.children,
-          };
-        }
-        return { ...child, hidden: true };
-      });
-    }
-  }
+  // Settings: gamification direction removes all settings (no goals config, no adoption levels).
+  // Keep the Settings nav hidden in demo mode — nothing to configure.
 
   return items;
 }

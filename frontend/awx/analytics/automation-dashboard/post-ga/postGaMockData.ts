@@ -56,34 +56,74 @@ export const STREAK_HEAT_STRIP_DAYS = (() => {
   return days;
 })();
 
+export const QUARTER_COMPARISON = {
+  runs: { current: 9840, previous: 7200 },
+  savings: { current: 3200, previous: 2000 },
+  hosts: { current: 1247, previous: 980 },
+};
+
+export const SPARKLINE_DATA = {
+  orgActivity: [58, 60, 62, 59, 64, 65, 67],
+  templateUtil: [60, 62, 58, 63, 65, 64, 67],
+  runs: [980, 1020, 1100, 1050, 1150, 1180, 1200],
+};
+
 export const topOrganizations = [
-  { orgName: 'Platform Engineering', jobRuns: 2840, isYourOrg: true },
-  { orgName: 'Security Operations', jobRuns: 1923 },
-  { orgName: 'Cloud Infrastructure', jobRuns: 1654 },
-  { orgName: 'Application Development', jobRuns: 1201 },
-  { orgName: 'Data Analytics', jobRuns: 987 },
-  { orgName: 'Network Services', jobRuns: 756 },
-  { orgName: 'DevOps Enablement', jobRuns: 534 },
-  { orgName: 'Quality Assurance', jobRuns: 412 },
-  { orgName: 'Release Management', jobRuns: 298 },
-  { orgName: 'IT Operations', jobRuns: 187 },
+  { orgName: 'Platform Engineering', jobRuns: 2840, isYourOrg: true, trend: 'up' as const },
+  { orgName: 'Security Operations', jobRuns: 1923, trend: 'up' as const },
+  { orgName: 'Cloud Infrastructure', jobRuns: 1654, trend: 'down' as const },
+  { orgName: 'Application Development', jobRuns: 1201, trend: 'steady' as const },
+  { orgName: 'Data Analytics', jobRuns: 987, trend: 'up' as const },
+  { orgName: 'Network Services', jobRuns: 756, trend: 'down' as const },
+  { orgName: 'DevOps Enablement', jobRuns: 534, trend: 'steady' as const },
+  { orgName: 'Quality Assurance', jobRuns: 412, trend: 'up' as const },
+  { orgName: 'Release Management', jobRuns: 298, trend: 'down' as const },
+  { orgName: 'IT Operations', jobRuns: 187, trend: 'steady' as const },
 ];
 
 export const topTemplates = [
-  { templateName: 'Infrastructure provisioning', runCount: 1247, org: 'Platform Engineering' },
-  { templateName: 'Security compliance scan', runCount: 892, org: 'Security Operations' },
-  { templateName: 'Application deployment', runCount: 756, org: 'Platform Engineering' },
-  { templateName: 'Backup and restore', runCount: 534, org: 'Cloud Infrastructure' },
-  { templateName: 'Patch management', runCount: 412, org: 'Security Operations' },
+  { templateName: 'Infrastructure provisioning', runCount: 1247, org: 'Platform Engineering', trend: 'up' as const },
+  { templateName: 'Security compliance scan', runCount: 892, org: 'Security Operations', trend: 'steady' as const },
+  { templateName: 'Application deployment', runCount: 756, org: 'Platform Engineering', trend: 'up' as const },
+  { templateName: 'Backup and restore', runCount: 534, org: 'Cloud Infrastructure', trend: 'down' as const },
+  { templateName: 'Patch management', runCount: 412, org: 'Security Operations', trend: 'up' as const },
 ];
 
 export const topProjects = [
-  { projectName: 'Project A', totalJobs: 24, org: 'Platform Engineering' },
-  { projectName: 'Project B', totalJobs: 18, org: 'Security Operations' },
-  { projectName: 'Project C', totalJobs: 12, org: 'Cloud Infrastructure' },
-  { projectName: 'Project D', totalJobs: 10, org: 'Application Development' },
-  { projectName: 'Project E', totalJobs: 8, org: 'Platform Engineering' },
+  { projectName: 'Project A', totalJobs: 24, org: 'Platform Engineering', trend: 'up' as const },
+  { projectName: 'Project B', totalJobs: 18, org: 'Security Operations', trend: 'steady' as const },
+  { projectName: 'Project C', totalJobs: 12, org: 'Cloud Infrastructure', trend: 'down' as const },
+  { projectName: 'Project D', totalJobs: 10, org: 'Application Development', trend: 'up' as const },
+  { projectName: 'Project E', totalJobs: 8, org: 'Platform Engineering', trend: 'steady' as const },
 ];
+
+export const topUsers = [
+  { userName: 'jsmith', displayName: 'John Smith', jobRuns: 487, org: 'Platform Engineering', trend: 'up' as const },
+  { userName: 'agarcia', displayName: 'Ana Garcia', jobRuns: 342, org: 'Security Operations', trend: 'steady' as const },
+  { userName: 'mchen', displayName: 'Michael Chen', jobRuns: 278, org: 'Cloud Infrastructure', trend: 'up' as const },
+  { userName: 'kwilson', displayName: 'Karen Wilson', jobRuns: 195, org: 'Platform Engineering', trend: 'down' as const },
+  { userName: 'rpatel', displayName: 'Raj Patel', jobRuns: 163, org: 'Data Analytics', trend: 'up' as const },
+];
+
+export const JOB_SUCCESS_BREAKDOWN = {
+  successful: 7840,
+  failed: 1120,
+  error: 480,
+  canceled: 400,
+};
+
+export const AUTOMATION_VELOCITY = {
+  dailyRuns: [142, 156, 138, 168, 172, 155, 189, 195, 201, 178, 210, 224, 198, 215],
+  avgRunsPerDay: 189,
+  previousAvg: 156,
+};
+
+export const TEMPLATE_REUSE = {
+  usedOnce: 3,
+  usedMultiple: 12,
+  total: 15,
+  reusePct: 80,
+};
 
 export type ManageViewPanel = {
   id: string;
