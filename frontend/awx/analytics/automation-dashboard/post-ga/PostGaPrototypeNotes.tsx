@@ -17,8 +17,8 @@ export function GaDashboardToolbarPrototypeNote({
           ).
         </>,
         <>
-          When a saved report is selected, the <strong>Report actions</strong> dropdown is
-          text-only (no icon). Standalone <strong>Create new report</strong> keeps{' '}
+          When a saved report is selected, the <strong>Report actions</strong> dropdown is text-only
+          (no icon). Standalone <strong>Create new report</strong> keeps{' '}
           <strong>PlusCircleIcon</strong> when no saved report is selected (
           <a href="https://issues.redhat.com/browse/AAP-87098" target="_blank" rel="noreferrer">
             AAP-87098
@@ -27,8 +27,8 @@ export function GaDashboardToolbarPrototypeNote({
         </>,
         <>
           Secondary description text under <strong>Create new report</strong> and{' '}
-          <strong>Update report</strong> menu items clarifies each action; <strong>Delete report</strong>{' '}
-          has no description (
+          <strong>Update report</strong> menu items clarifies each action;{' '}
+          <strong>Delete report</strong> has no description (
           <a href="https://issues.redhat.com/browse/AAP-87097" target="_blank" rel="noreferrer">
             AAP-87097
           </a>
@@ -42,10 +42,10 @@ export function GaDashboardToolbarPrototypeNote({
           ).
         </>,
         <>
-          Cost toolbar uses PF <strong>NumberInput</strong> for hourly rate and monthly AAP cost in a
-          3-column grid with <code>reserveErrorSpace</code> so validation errors do not shift the
-          row. Per-row <strong>Time taken to manually execute</strong> uses <strong>TextInput</strong>{' '}
-          <code>type=&quot;number&quot;</code> in the table (
+          Cost toolbar uses PF <strong>NumberInput</strong> for hourly rate and monthly AAP cost in
+          a 3-column grid with <code>reserveErrorSpace</code> so validation errors do not shift the
+          row. Per-row <strong>Time taken to manually execute</strong> uses{' '}
+          <strong>TextInput</strong> <code>type=&quot;number&quot;</code> in the table (
           <a href="https://issues.redhat.com/browse/AAP-85053" target="_blank" rel="noreferrer">
             AAP-85053
           </a>
@@ -89,94 +89,64 @@ export function PostGaHighlightsPrototypeNote({
       defaultOpen={defaultOpen}
       notes={[
         <>
-          Toolbar (period + organization) → <strong>Automation at a glance</strong> card → four{' '}
-          <strong>Top 5</strong> panels.
+          <strong>Highlights</strong> tab implements{' '}
+          <a
+            href="https://redhat.atlassian.net/browse/ANSTRAT-1976"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ANSTRAT-1976
+          </a>
+          . The interim <strong>Leaderboards</strong> admin tab and{' '}
+          <strong>Gamification (concepts)</strong> tab are retired — content converges here.
         </>,
         <>
-          Period filter (<strong>This month</strong> / <strong>This quarter</strong> /{' '}
-          <strong>All time</strong>) is independent from the Dashboard tab DateRange filter.
+          Fixed <strong>30-day</strong> window for all sections. No period or organization toolbar
+          filters. Streak calendar days use <strong>UTC</strong>.
         </>,
         <>
-          At-a-glance metrics, org leaderboard, and template fallback rows are mock data in{' '}
-          <code>postGaMockData.ts</code>, scaled when period or org filter changes.
+          Section order: sync timestamp → automation streak (§1) → dimensions (§2) → leaderboard
+          (§3) → milestone badges (§4) → automation at a glance (§5). Mock shapes in{' '}
+          <code>postGaMockData.ts</code> (<code>HIGHLIGHTS_*</code>, <code>MILESTONE_*</code>).
         </>,
         <>
-          <strong>Projects</strong>, <strong>users</strong>, and <strong>templates</strong> use live{' '}
-          <code>dashboard_reports/report/details/</code> data — period only in this prototype; org IDs
-          are not passed to the API yet.
+          <strong>Featured template</strong> = single template with the most runs in the 30-day
+          window, as of last sync (~hourly). <strong>Service accounts</strong> (e.g.{' '}
+          <code>awx-runner</code>) appear on the user leaderboard per spec.
         </>,
         <>
-          <strong>Success streak</strong> is always platform-wide (last 30 days) — not scoped by period
-          or organization filters.
+          <strong>Milestone badges</strong>: 7 badges (Ignition, Week Warrior, Month Warrior,
+          Explorer, Centurion, Reliable, Accelerator). Earned/locked only — no bronze/silver/gold
+          tiers. Badges re-earn each window; no lifetime history. Org badges assume the same 7 rules
+          at org scope (pending PM confirmation).
         </>,
         <>
-          Column headers: <strong>Projects</strong> — <strong>Total jobs</strong>;{' '}
-          <strong>Templates</strong>, <strong>Organizations</strong>, <strong>Users</strong> —{' '}
-          <strong>Total job runs</strong>. Org filter uses prototype org names; product should use
-          gateway org IDs.
+          Backend required: dedicated highlights/gamification metrics endpoints (or extensions to
+          metrics service) for streak calendar states, dimension scores/ranks, leaderboard rows,
+          badge eligibility, and <code>last_sync</code> timestamp.
+        </>,
+        <>
+          <strong>Admin toggle</strong>: Platform admins need a setting (likely under{' '}
+          <strong>Settings → General</strong> or a new <strong>Dashboard</strong> subsection) to
+          enable/disable gamification features platform-wide. When disabled, users see only the
+          standard dashboard without Highlights tab content (streaks, badges, leaderboard).
         </>,
       ]}
       questions={[
-        'Wire organization filter to report details so top_projects, top_users, and template runs respect the Leaderboards org multi-select (API supports org filter; prototype gap).',
-        'Does top_projects use a distinct job-count field, or is execution_count acceptable for v1?',
-        'Org leaderboard: rank by successful job runs only — which metrics-service field or status filter?',
+        'Org Reliable badge: does the 20 consecutive successful jobs rule apply at org scope the same way as for individuals?',
+        'Service accounts on the user leaderboard: show a "Service account" label, distinct icon, or plain username only?',
+        'Org leaderboard ranking: successful job runs only — confirm status filter and field names when API lands.',
+        'Admin gamification toggle: gateway settings API field (e.g. gamification_enabled) vs metrics service config? Should this be a single on/off or granular per-feature (badges, streaks, leaderboard)?',
       ]}
     />
   );
 }
 
+/** @deprecated Retired with Highlights consolidation — see PostGaHighlightsPrototypeNote */
 export function PostGaGamificationPrototypeNote({
   defaultOpen,
 }: Readonly<{ defaultOpen?: boolean }> = {}) {
-  return (
-    <PrototypeNote
-      defaultOpen={defaultOpen}
-      notes={[
-        <>
-          Frozen snapshot of the prior gamification direction — do not edit for the new Leaderboards
-          work. Tab tooltip: future-scoped concepts, not current release. Implementation handoff:{' '}
-          <code>CHANGES-Gamification.md</code>. Active direction: <strong>Leaderboards</strong> tab (
-          <code>AutomationDashboardLeaderboards.tsx</code>).
-        </>,
-        <>
-          <strong>Automation health</strong>, <strong>Automation trends</strong>,{' '}
-          <strong>At a glance</strong> metrics, <strong>Achievements</strong>, and{' '}
-          <strong>Top organizations / templates</strong> rows are mock data in{' '}
-          <code>postGaMockData.ts</code>, scaled when period or org filter changes — not live API
-          responses.
-        </>,
-        <>
-          <strong>Projects</strong> and <strong>users</strong> leaderboards use live metrics-service{' '}
-          <code>top_projects</code> / <code>top_users</code> from{' '}
-          <code>GET /api/metrics/v1/dashboard_reports/report/details/</code> (period only).{' '}
-          <strong>Templates</strong> use report list <code>runs</code> when loaded; mock fallback
-          otherwise.
-        </>,
-        <>
-          Backend required: <code>top_organizations</code> on the details endpoint; org leaderboard
-          ranked by <strong>% of quarterly goal met</strong> (G-5) — prototype still mocks{' '}
-          <code>execution_count</code>. Week-over-week trend values, job success breakdown, velocity
-          series, template reuse %, daily streak cells, and achievement tier state all need metrics
-          definitions (or a dedicated gamification/achievements API).
-        </>,
-        <>
-          Organization filter uses prototype org names (<code>FILTER_ORGANIZATIONS</code>) — product
-          should use real org IDs. Org filter does not scope live API panels today.
-        </>,
-        <>
-          Eight <strong>Achievement</strong> badges and bronze/silver/gold thresholds are computed
-          client-side from <code>ACHIEVEMENT_METRICS</code> — demo values tuned to show earned and
-          locked tiers. Earned-first sort order is a prototype UX choice.
-        </>,
-      ]}
-      questions={[
-        'Org leaderboard for GA: rank by % of quarterly goal met (G-5) or execution_count?',
-        'Day 0: show a row of locked achievement badges, placeholder copy, or hide achievements until the first job runs?',
-        'Remove Org Adoption and Daily Streak badges? They overlap org active % (At a glance) and success streak (Automation health).',
-        'Recovery / Clean week / Run distribution / Execution balance — confirm thresholds and whether canceled jobs count like failures for streak and success rate.',
-      ]}
-    />
-  );
+  return <PostGaHighlightsPrototypeNote defaultOpen={defaultOpen} />;
 }
 
 /** @deprecated Use PostGaHighlightsPrototypeNote */

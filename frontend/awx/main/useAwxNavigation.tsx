@@ -135,13 +135,11 @@ export function useAwxNavigation() {
               children: [],
             },
             {
-              id: AwxRoute.AutomationDashboardPostGAGamification,
-              path: 'gamification',
-              element: <></>,
-              children: [],
+              path: 'highlights',
+              element: <Navigate to="../leaderboards" replace />,
             },
             {
-              path: 'highlights',
+              path: 'gamification',
               element: <Navigate to="../leaderboards" replace />,
             },
             {

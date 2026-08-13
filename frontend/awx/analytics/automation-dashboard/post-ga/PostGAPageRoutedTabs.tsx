@@ -4,50 +4,48 @@ import { PageSection, Tab, TabProps, Tabs, Tooltip } from '@patternfly/react-cor
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AutomationDashboardPostGADashboardTab } from './AutomationDashboardPostGADashboardTab';
-import { AutomationDashboardPostGAGamificationTab } from './AutomationDashboardPostGAGamificationTab';
-import { AutomationDashboardPostGALeaderboardsTab } from './AutomationDashboardPostGALeaderboardsTab';
+import { AutomationDashboardPostGAHighlightsTab } from './AutomationDashboardPostGAHighlightsTab';
 import { AwxRoute } from '../../../main/AwxRoutes';
 
 const POST_GA_BASE_PATH = '/analytics/automation-dashboard/post-ga';
 
 const POST_GA_TAB_SEGMENTS: Record<string, string> = {
   [AwxRoute.AutomationDashboardPostGADashboard]: 'dashboard',
-  [AwxRoute.AutomationDashboardPostGALeaderboards]: 'highlights',
-  [AwxRoute.AutomationDashboardPostGAGamification]: 'gamification',
+  [AwxRoute.AutomationDashboardPostGALeaderboards]: 'leaderboards',
 };
 
-function resolveActivePage(pathname: string): string {
+function resolveActivePage(pathname: string): AwxRoute {
   if (!pathname.includes(POST_GA_BASE_PATH)) {
     return AwxRoute.AutomationDashboardPostGADashboard;
   }
-  if (pathname.includes('/gamification')) {
-    return AwxRoute.AutomationDashboardPostGAGamification;
+  if (pathname.includes('/dashboard')) {
+    return AwxRoute.AutomationDashboardPostGADashboard;
   }
-  if (pathname.includes('/leaderboards') || pathname.includes('/highlights')) {
+  if (
+    pathname.includes('/highlights') ||
+    pathname.includes('/leaderboards') ||
+    pathname.includes('/gamification')
+  ) {
     return AwxRoute.AutomationDashboardPostGALeaderboards;
   }
   return AwxRoute.AutomationDashboardPostGADashboard;
 }
 
-function PostGATabContent({ activePage }: Readonly<{ activePage: string }>) {
-  switch (activePage) {
-    case AwxRoute.AutomationDashboardPostGAGamification:
-      return <AutomationDashboardPostGAGamificationTab key="gamification" />;
-    case AwxRoute.AutomationDashboardPostGALeaderboards:
-      return <AutomationDashboardPostGALeaderboardsTab key="leaderboards" />;
-    case AwxRoute.AutomationDashboardPostGADashboard:
-      return <AutomationDashboardPostGADashboardTab key="dashboard" />;
-    default:
-      return <AutomationDashboardPostGADashboardTab key="dashboard" />;
+function PostGATabContent({ activePage }: Readonly<{ activePage: AwxRoute }>) {
+  if (activePage === AwxRoute.AutomationDashboardPostGALeaderboards) {
+    return <AutomationDashboardPostGAHighlightsTab key="highlights" />;
   }
+  return <AutomationDashboardPostGADashboardTab key="dashboard" />;
 }
 
 /**
  * Post-GA tab shell — active tab follows the URL; tab clicks navigate via page route ids.
  */
-export function PostGAPageRoutedTabs(props: Readonly<{
-  tabs: { label: string; page: string; dataCy?: string; tooltip?: string }[];
-}>) {
+export function PostGAPageRoutedTabs(
+  props: Readonly<{
+    tabs: { label: string; page: AwxRoute; dataCy?: string; tooltip?: string }[];
+  }>
+) {
   const navigate = useNavigate();
   const getPageUrl = useGetPageUrl();
   const location = useLocation();
@@ -75,10 +73,7 @@ export function PostGAPageRoutedTabs(props: Readonly<{
       props.tabs.find((tab) => tab.page === activePage) ??
       props.tabs.find((tab) => {
         const tabUrl = getPageUrl(tab.page);
-        return (
-          tabUrl &&
-          (location.pathname === tabUrl || location.pathname.endsWith(tabUrl))
-        );
+        return tabUrl && (location.pathname === tabUrl || location.pathname.endsWith(tabUrl));
       }),
     [activePage, getPageUrl, location.pathname, props.tabs]
   );
@@ -113,11 +108,7 @@ export function PostGAPageRoutedTabs(props: Readonly<{
   return (
     <>
       <PageSection style={{ padding: 0 }}>
-        <Tabs
-          onSelect={onSelect}
-          inset={{ default: 'insetSm' }}
-          activeKey={activePage}
-        >
+        <Tabs onSelect={onSelect} inset={{ default: 'insetSm' }} activeKey={activePage}>
           {tabs}
         </Tabs>
       </PageSection>

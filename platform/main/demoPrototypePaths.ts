@@ -1,5 +1,5 @@
-/** Post-GA automation dashboard — Dashboard tab (demo prototype default landing). */
-export const DEMO_AUTOMATION_DASHBOARD_PATH = 'analytics/automation-dashboard/post-ga/dashboard';
+/** Post-GA automation dashboard — Highlights tab (ANSTRAT-1976). */
+export const DEMO_AUTOMATION_DASHBOARD_PATH = 'analytics/automation-dashboard/post-ga/highlights';
 
 /** Standalone prototype bookmark path (legacy GitLab Pages URL). */
 export const LEGACY_AUTOMATION_DASHBOARD_PATH = 'automation-dashboard-b';

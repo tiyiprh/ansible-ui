@@ -11,6 +11,8 @@ import {
 const MODES: readonly { value: GoalsPreviewMode; label: string }[] = [
   { value: 'configured', label: 'Populated' },
   { value: 'day0', label: 'Day 0 (no data)' },
+  { value: 'normalUser', label: 'Normal user' },
+  { value: 'achievementUnlocked', label: 'Achievement unlocked' },
 ];
 
 export function GoalsPreviewControl() {

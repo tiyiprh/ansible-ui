@@ -4,7 +4,6 @@ import {
   PageToolbarFilters,
 } from '@ansible/ansible-ui-framework';
 import {
-  Button,
   Card,
   CardBody,
   CardHeader,
@@ -24,6 +23,11 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageLoadingTable } from '../../../../../framework/PageTable/PageLoadingTable';
 import { useAutomationDashboardToolbar } from '../components';
+
+function abbreviateName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return parts.map((p) => p[0].toUpperCase()).join('');
+}
 import { IDashboardTableItem } from '../types';
 import { useAutomationDashboardView } from '../views/useAutomationDashboardView';
 import {
@@ -368,9 +372,7 @@ export function AutomationDashboardLeaderboards() {
                             dataLabel={t('Organization')}
                             style={isTopThree(index) ? { fontWeight: 700 } : undefined}
                           >
-                            <Button variant="link" isInline>
-                              {row.name}
-                            </Button>
+                            {row.name}
                           </Td>
                           <Td dataLabel={totalJobRunsColumn}>
                             {row.execution_count.toLocaleString()}
@@ -416,9 +418,7 @@ export function AutomationDashboardLeaderboards() {
                             dataLabel={t('Template')}
                             style={isTopThree(index) ? { fontWeight: 700 } : undefined}
                           >
-                            <Button variant="link" isInline>
-                              {row.name}
-                            </Button>
+                            {row.name}
                           </Td>
                           <Td dataLabel={totalJobRunsColumn}>
                             {row.execution_count.toLocaleString()}
@@ -464,9 +464,7 @@ export function AutomationDashboardLeaderboards() {
                             dataLabel={t('Project')}
                             style={isTopThree(index) ? { fontWeight: 700 } : undefined}
                           >
-                            <Button variant="link" isInline>
-                              {row.name}
-                            </Button>
+                            {row.name}
                           </Td>
                           <Td dataLabel={totalJobsColumn}>
                             {row.execution_count.toLocaleString()}
@@ -512,9 +510,7 @@ export function AutomationDashboardLeaderboards() {
                             dataLabel={t('User')}
                             style={isTopThree(index) ? { fontWeight: 700 } : undefined}
                           >
-                            <Button variant="link" isInline>
-                              {row.name}
-                            </Button>
+                            {abbreviateName(row.name)}
                           </Td>
                           <Td dataLabel={totalJobRunsColumn}>
                             {row.execution_count.toLocaleString()}

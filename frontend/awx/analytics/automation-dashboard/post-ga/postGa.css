@@ -12,6 +12,84 @@
 
 .streak-heat-cell--empty {
   background-color: #e0e0e0;
+  background-image: linear-gradient(
+    -45deg,
+    transparent 40%,
+    rgba(0, 0, 0, 0.35) 40%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 45%
+  );
+}
+
+#automation-streak-legend-no-activity-count {
+  background-image: linear-gradient(
+    -45deg,
+    transparent 40%,
+    rgba(0, 0, 0, 0.35) 40%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 45%
+  );
+}
+
+.post-ga-highlights-tab {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.post-ga-highlights-tab > * {
+  flex-shrink: 0;
+}
+
+.achievement-badge--milestone .achievement-badge__stars {
+  visibility: hidden;
+}
+
+.achievement-badge--milestone.achievement-badge--earned {
+  --badge-tier-color: var(--pf-t--global--color--status--success--default);
+  border: 2px solid var(--badge-tier-color);
+}
+
+.pf-v6-theme-dark .achievement-badge--milestone.achievement-badge--earned {
+  --badge-tier-color: var(--pf-t--global--color--status--success--default);
+}
+
+/* Milestone badges are sized down so the card can sit at 50% width next to the Top 10
+   leaderboard card, and small enough that all 7 fit on one row. Scoped to --milestone so
+   the tiered achievement badges (AchievementBadges.tsx) are unaffected. Uses the compound
+   .achievement-badge.achievement-badge--milestone selector (2 classes) so it reliably beats
+   the later, equal-specificity base .achievement-badge{width:96px} rule regardless of source
+   order. */
+.achievement-badge.achievement-badge--milestone {
+  width: 80px;
+  height: 80px;
+  padding: 6px 4px 4px;
+}
+
+.achievement-badge--milestone .achievement-badge__icon {
+  flex: 0 0 20px;
+  min-height: 20px;
+}
+
+.achievement-badge--milestone.achievement-badge--earned .achievement-badge__icon,
+.achievement-badge--milestone.achievement-badge--locked .achievement-badge__icon {
+  font-size: 20px;
+}
+
+.achievement-badge--milestone .achievement-badge__label {
+  font-size: 10px;
+  min-height: 22px;
+  white-space: normal;
+}
+
+/* Milestone badges arranged in a 5-column grid (5 top, 2 bottom). */
+.achievement-badges-grid--milestone {
+  display: grid;
+  grid-template-columns: repeat(5, 80px);
+  gap: 6px;
+  margin-top: var(--pf-t--global--spacer--sm);
+}
+  padding-bottom: 2px;
 }
 
 .post-ga-goals-row {
@@ -211,49 +289,12 @@
   align-items: start;
 }
 
-.achievement-badges-carousel {
-  display: flex;
-  align-items: center;
-  gap: var(--pf-t--global--spacer--xs);
-  min-width: 0;
-  margin-top: var(--pf-t--global--spacer--md);
-}
-
-.achievement-badges-carousel__nav {
-  flex: 0 0 auto;
-  align-self: center;
-}
-
-.achievement-badges-carousel__track {
-  display: flex;
-  flex: 1 1 auto;
+.achievement-badges-grid--4col {
+  display: grid;
+  grid-template-columns: repeat(4, 96px);
   gap: 10px;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: visible;
-  scroll-snap-type: x proximity;
-  scroll-behavior: smooth;
-  padding-block: var(--pf-t--global--spacer--sm);
-  padding-inline: var(--pf-t--global--spacer--xs);
-  scrollbar-width: thin;
-}
-
-.achievement-badges-carousel__track > * {
-  flex: 0 0 96px;
-  min-width: 96px;
-  display: flex;
-  justify-content: center;
-}
-
-.achievement-badges-carousel__track .achievement-badge {
-  flex: 0 0 96px;
-  scroll-snap-align: start;
-  position: relative;
-  z-index: 0;
-}
-
-.achievement-badges-carousel__track .achievement-badge:hover {
-  z-index: 1;
+  align-items: start;
+  margin-top: var(--pf-t--global--spacer--md);
 }
 
 .achievement-badge {
@@ -262,7 +303,7 @@
   align-items: center;
   justify-content: flex-start;
   width: 96px;
-  height: 92px;
+  height: 96px;
   cursor: default;
   padding: 8px 6px 6px;
   border-radius: var(--pf-t--global--border--radius--medium);
@@ -348,11 +389,11 @@
 
 .achievement-badge--locked {
   border: 2px dashed var(--pf-t--global--border--color--default);
-  background-color: var(--pf-t--global--background--color--secondary--default);
+  background-color: var(--pf-t--global--background--color--tertiary--default);
 }
 
 .achievement-badge--locked .achievement-badge__icon {
-  color: var(--pf-t--global--icon--color--subtle);
+  color: var(--pf-t--global--icon--color--disabled);
   font-size: 20px;
 }
 
@@ -376,7 +417,7 @@
 }
 
 .achievement-badge--locked .achievement-badge__label {
-  color: var(--pf-t--global--text--color--subtle);
+  color: var(--pf-t--global--text--color--disabled);
 }
 
 .achievement-badge-tier-list {
@@ -422,6 +463,7 @@
 .pf-v6-theme-dark .achievement-badge-tier-dot.post-ga-tier--bronze {
   background-color: var(--pf-t--global--color--nonstatus--orange--default);
 }
+
 
 .automation-health-chart {
   width: 140px;
@@ -497,4 +539,16 @@
   box-sizing: border-box;
   padding-block-start: var(--post-ga-cost-toolbar-label-offset);
   padding-block-end: var(--post-ga-cost-toolbar-error-offset);
+}
+
+/* Automation dimensions — SimpleListItem's default padding is tight; give the row content
+   more breathing room since each item holds an icon + two-line title/value cluster. */
+.post-ga-dimension-row .pf-v6-c-simple-list__item-link {
+  padding-block: 10px;
+}
+
+/* A little extra breathing room between the 3 rows so they don't feel cramped, without
+   force-stretching them to match the (unrelated) height of the leaderboard list beside them. */
+.post-ga-dimension-list .pf-v6-c-simple-list__item + .pf-v6-c-simple-list__item {
+  margin-top: 12px;
 }

@@ -8,7 +8,7 @@ export type DashboardGoals = {
   monthlySavingsTarget: number;
 };
 
-export type GoalsPreviewMode = 'day0' | 'configured';
+export type GoalsPreviewMode = 'day0' | 'configured' | 'normalUser' | 'achievementUnlocked';
 
 /** Mock targets for demo populated preview only — not a product default. */
 export const DEMO_GOAL_TARGETS: DashboardGoals = {
@@ -42,7 +42,7 @@ export function isDemoMode(): boolean {
 export function getGoalsPreviewMode(): GoalsPreviewMode {
   try {
     const stored = sessionStorage.getItem(GOALS_PREVIEW_STORAGE_KEY);
-    if (stored === 'day0' || stored === 'configured') return stored;
+    if (stored === 'day0' || stored === 'configured' || stored === 'normalUser' || stored === 'achievementUnlocked') return stored;
     if (stored === 'empty') return 'configured';
   } catch {
     // ignore
@@ -98,7 +98,8 @@ export function getEffectiveGoalTargets(): DashboardGoals {
   if (saved && saved.quarterlyRunTarget > 0 && saved.monthlySavingsTarget > 0) {
     return saved;
   }
-  if (isDemoMode() && getGoalsPreviewMode() === 'configured') {
+  const mode = getGoalsPreviewMode();
+  if (isDemoMode() && (mode === 'configured' || mode === 'achievementUnlocked' || mode === 'normalUser')) {
     return DEMO_GOAL_TARGETS;
   }
   return { quarterlyRunTarget: 0, monthlySavingsTarget: 0 };
@@ -106,7 +107,8 @@ export function getEffectiveGoalTargets(): DashboardGoals {
 
 export function shouldShowEmptyGoalsCard(): boolean {
   if (isDemoMode()) {
-    if (getGoalsPreviewMode() === 'configured') return false;
+    const mode = getGoalsPreviewMode();
+    if (mode === 'configured' || mode === 'achievementUnlocked' || mode === 'normalUser') return false;
   }
   return !hasConfiguredGoals();
 }

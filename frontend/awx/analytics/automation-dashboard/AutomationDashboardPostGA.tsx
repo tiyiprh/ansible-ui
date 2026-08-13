@@ -1,9 +1,15 @@
 import { PageHeader, PageLayout } from '@ansible/ansible-ui-framework';
+import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useAutomationDashboardCollectionStatus } from './common/useAutomationDashboardCollectionStatus';
 import { PostGADashboardFilterProvider } from './post-ga/PostGADashboardFilterContext';
 import { PostGAPageRoutedTabs } from './post-ga/PostGAPageRoutedTabs';
+import { AutomationDashboardPostGAHighlightsTab } from './post-ga/AutomationDashboardPostGAHighlightsTab';
+import {
+  getGoalsPreviewMode,
+  subscribeDashboardSettings,
+} from './post-ga/dashboardSettingsUtils';
 import { AwxRoute } from '../../main/AwxRoutes';
 import './post-ga/postGa.css';
 
@@ -16,9 +22,32 @@ export function AutomationDashboardPostGA() {
     'View automation performance, goals, and cost savings for your organization. Filter by period and organization, or save custom views as reports.'
   );
   const { isLoading } = useAutomationDashboardCollectionStatus();
+  const previewMode = useSyncExternalStore(
+    subscribeDashboardSettings,
+    getGoalsPreviewMode,
+    getGoalsPreviewMode
+  );
 
   if (!pathname.includes(POST_GA_BASE_PATH)) {
     return null;
+  }
+
+  if (previewMode === 'normalUser') {
+    return (
+      <PostGADashboardFilterProvider>
+        <PageLayout>
+          {!isLoading && (
+            <PageHeader
+              title={t('Automation Dashboard')}
+              titleHelpTitle={t('Automation Dashboard')}
+              titleHelp={description}
+              titleHeadingLevel="h2"
+            />
+          )}
+          <AutomationDashboardPostGAHighlightsTab />
+        </PageLayout>
+      </PostGADashboardFilterProvider>
+    );
   }
 
   return (
@@ -44,14 +73,6 @@ export function AutomationDashboardPostGA() {
               label: t('Leaderboards'),
               page: AwxRoute.AutomationDashboardPostGALeaderboards,
               dataCy: 'post-ga-leaderboards-tab',
-            },
-            {
-              label: t('Gamification (concepts)'),
-              page: AwxRoute.AutomationDashboardPostGAGamification,
-              dataCy: 'post-ga-gamification-tab',
-              tooltip: t(
-                'Future-scoped concepts and ideas. This tab preserves an earlier design direction and is not planned for the current release.'
-              ),
             },
           ]}
         />

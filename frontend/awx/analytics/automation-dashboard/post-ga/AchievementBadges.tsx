@@ -1,7 +1,5 @@
-import { Button, Tooltip } from '@patternfly/react-core';
+import { Tooltip } from '@patternfly/react-core';
 import {
-  AngleLeftIcon,
-  AngleRightIcon,
   ArrowUpIcon,
   CheckCircleIcon,
   ClusterIcon,
@@ -12,7 +10,7 @@ import {
 } from '@patternfly/react-icons';
 import StarIcon from '@patternfly/react-icons/dist/esm/icons/star-icon';
 import CubesIcon from '@patternfly/react-icons/dist/esm/icons/cubes-icon';
-import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getGoalsPreviewMode,
@@ -36,7 +34,7 @@ import {
 type BadgeTier = 'locked' | 'bronze' | 'silver' | 'gold';
 
 const TIER_CONFIG: Record<BadgeTier, { stars: number; opacity: number }> = {
-  locked: { stars: 0, opacity: 0.5 },
+  locked: { stars: 0, opacity: 1 },
   bronze: { stars: 1, opacity: 1 },
   silver: { stars: 2, opacity: 1 },
   gold: { stars: 3, opacity: 1 },
@@ -478,8 +476,6 @@ function Badge({ badge }: Readonly<{ badge: BadgeDef }>) {
   );
 }
 
-const BADGE_SCROLL_STEP_PX = 318;
-
 export function AchievementBadges() {
   const { t } = useTranslation();
   const { organizationFilterIds, periodScale, orgFilterScale } = usePostGaHighlightsFilters();
@@ -487,7 +483,6 @@ export function AchievementBadges() {
     () => computeBadges(t, organizationFilterIds, periodScale, orgFilterScale),
     [t, organizationFilterIds, periodScale, orgFilterScale]
   );
-  const trackRef = useRef<HTMLDivElement>(null);
 
   const previewMode = useSyncExternalStore(
     subscribeDashboardSettings,
@@ -495,13 +490,6 @@ export function AchievementBadges() {
     getGoalsPreviewMode
   );
   const isDay0 = isDemoMode() && previewMode === 'day0';
-
-  const scrollBadges = useCallback((direction: 'left' | 'right') => {
-    trackRef.current?.scrollBy({
-      left: direction === 'left' ? -BADGE_SCROLL_STEP_PX : BADGE_SCROLL_STEP_PX,
-      behavior: 'smooth',
-    });
-  }, []);
 
   if (isDay0) {
     return (
@@ -512,28 +500,10 @@ export function AchievementBadges() {
   }
 
   return (
-    <div className="achievement-badges-carousel">
-      <Button
-        variant="plain"
-        className="achievement-badges-carousel__nav"
-        aria-label={t('Show previous achievements')}
-        onClick={() => scrollBadges('left')}
-      >
-        <AngleLeftIcon />
-      </Button>
-      <div ref={trackRef} className="achievement-badges-carousel__track">
-        {badges.map((badge) => (
-          <Badge key={badge.id} badge={badge} />
-        ))}
-      </div>
-      <Button
-        variant="plain"
-        className="achievement-badges-carousel__nav"
-        aria-label={t('Show more achievements')}
-        onClick={() => scrollBadges('right')}
-      >
-        <AngleRightIcon />
-      </Button>
+    <div className="achievement-badges-grid--4col">
+      {badges.map((badge) => (
+        <Badge key={badge.id} badge={badge} />
+      ))}
     </div>
   );
 }

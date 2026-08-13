@@ -106,14 +106,18 @@ Most sections below have **no dev story yet**. Create under ANSTRAT-1976 / XLAB 
 - `frontend/awx/analytics/automation-dashboard/post-ga/DashboardSectionHeading.tsx`
 - `frontend/awx/analytics/automation-dashboard/post-ga/postGa.css`
 
-**Typography hierarchy:**
+**Typography hierarchy (updated Aug 13, 2026 — see dated entry below):**
+
+Highlights sits under a page title deliberately shrunk to `xl` (`AutomationDashboardPostGA.tsx` `titleHeadingLevel="h2"`, part of the smaller-page-title direction from `ux-filter-designs`). To avoid the card title colliding with the page title, every level below it drops one step from the original scale.
 
 | Level | PF | Examples |
 |-------|-----|----------|
-| Card title | `Title h3 xl` | Automation health, At a glance, Automation trends |
-| Section title | `Title h4 lg` + Help | Job runs, Cost savings, Success rate, Achievements |
-| Metric value | `Title h2 2xl` / `3xl` | Run counts, $ amounts, percentages |
-| Helper | `Content component="small"` | “Last week”, streak legend |
+| Card title | `Title h3 lg` | Automation streak, Automation dimensions, Milestone badges, Top 10 organizations/users, Automation at a glance |
+| Section title | `DashboardSectionHeading` `size="md"` (`Title h4 md` + Help) | Enterprise streak, Volume/Breadth/Consistency, Your badges/Your org's badges, KPI labels |
+| Metric value | `Title h2 2xl` / `3xl` | Run counts, $ amounts, percentages — intentionally left as the largest/boldest element in each card (data-emphasis, not a heading rung) |
+| Helper | `Content component="small"` | Rank text, "No active streak", sync timestamp |
+
+**Not changed:** GA Dashboard's card titles (`PageDashboardCard`, `h3 xl`) and the nested Cost calculation KPI titles (AAP-85859, `DashboardSectionHeading` default `size="lg"`) — GA's page title is still the un-shrunk `2xl` default, so its existing `xl`/`lg` ladder is already correctly proportioned.
 
 **Acceptance criteria:**
 - Automation health + pinned At a glance / Automation trends render on Highlights only.
@@ -440,3 +444,11 @@ Shared components improved on devel — do not duplicate Jira specs here:
 **Why:** Align prototype with PM/design review: separate health metrics from summary KPIs, add gamification badges, simplify Highlights filters vs full Dashboard, use PF charts/icons.
 
 **Where:** `AutomationDashboardLeaderboards.tsx`, `AutomationHealthCard.tsx`, `DashboardGoalsCard.tsx`, `DashboardAtAGlanceCard.tsx`, `AchievementBadges.tsx`, `usePostGaHighlightsToolbar.tsx`, `PostGaHighlightsFilterContext.tsx`, `postGaHighlightsFilterUtils.ts`, `postGaMockData.ts`, `postGa.css`, `PostGaPrototypeNotes.tsx`, `CHANGES-Gamification.md` (G-2–G-6, G-11, G-12).
+
+---
+
+## [Aug 13, 2026] Highlights typography — drop card/section titles one step so they don't collide with the page title
+
+**What:** Highlights' page title renders at `xl` (an intentionally smaller, experimental page-title scale — see `AutomationDashboardPostGA.tsx`), which was the same visual size as every card title (`h3 xl`) on the tab. Rescaled the whole Highlights ladder down one step so page > card > section stays a clear, distinct hierarchy: card titles `h3 xl` → `h3 lg` (Automation streak, Automation dimensions, Milestone badges, Top 10 organizations/Top 10 users leaderboard panels, Automation at a glance), and section titles `h4 lg` → `h4 md` (Enterprise streak legend, Volume/Breadth/Consistency, Your badges/Your org's badges, at-a-glance KPI labels). `AtAGlanceKpiMetric` also swapped its ad-hoc `Title h2 xl` metric value for the shared `MetricValue` component (`h2 2xl`) to match the documented metric-value tier. `HighlightsSyncTimestamp` swapped `Content component="p"` + inline font-size override for `Content component="small"` to match the documented helper tier. Metric values and helper text are unchanged in size — they sit outside the heading ladder by design. GA Dashboard is untouched: its page title is still the default `2xl`, so its existing `h3 xl` card / `h4 lg` section ladder (and the AAP-85859 nested Cost calculation KPI titles) remains correctly proportioned.
+**Why:** A card title matching the page title breaks the page > card > section visual hierarchy and reads as a design bug. Since the smaller Highlights page title is an intentional experiment (not a mistake), the fix is to cascade every level below it down one step rather than reverting the page title.
+**Where:** `DashboardSectionHeading.tsx` (new optional `size?: 'lg' | 'md'` prop, default `'lg'` so GA/AAP-85859 usages are unaffected); `HighlightsAtAGlanceCard.tsx`, `AutomationDimensionsCard.tsx`, `AutomationStreakCard.tsx`, `LeaderboardPanelCard.tsx`, `MilestoneBadgesCard.tsx` (card title `xl` → `lg`); `AutomationDimensionsCard.tsx`, `AtAGlanceKpiMetric.tsx`, `MilestoneBadgesCard.tsx`, `AutomationStreakCard.tsx` (`DashboardSectionHeading` now passed `size="md"`); `AtAGlanceKpiMetric.tsx` (metric value switched to `MetricValue`); `HighlightsSyncTimestamp.tsx` (helper text switched to `Content component="small"`); `CHANGES-Gamification.md` (G-2 typography hierarchy table).
