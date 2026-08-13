@@ -31,6 +31,14 @@
   );
 }
 
+/* Dashboard tab: step card titles down one size (xl → lg) to leave room for a
+   future smaller page-level title.  Scoped via a wrapper class so it only affects
+   the Dashboard tab's PageDashboardCard instances, not the Leaderboards tab.
+   PF6 Title xl = 1.25rem, lg = 1.125rem. */
+.post-ga-dashboard-tab .page-dashboard-card [data-testid="card-title"] {
+  font-size: 1.125rem;
+}
+
 .post-ga-highlights-tab {
   display: flex;
   flex-direction: column;
@@ -85,10 +93,9 @@
 /* Milestone badges arranged in a 5-column grid (5 top, 2 bottom). */
 .achievement-badges-grid--milestone {
   display: grid;
-  grid-template-columns: repeat(5, 80px);
+  grid-template-columns: repeat(auto-fill, minmax(72px, 80px));
   gap: 6px;
   margin-top: var(--pf-t--global--spacer--sm);
-}
   padding-bottom: 2px;
 }
 

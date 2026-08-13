@@ -452,3 +452,35 @@ Shared components improved on devel — do not duplicate Jira specs here:
 **What:** Highlights' page title renders at `xl` (an intentionally smaller, experimental page-title scale — see `AutomationDashboardPostGA.tsx`), which was the same visual size as every card title (`h3 xl`) on the tab. Rescaled the whole Highlights ladder down one step so page > card > section stays a clear, distinct hierarchy: card titles `h3 xl` → `h3 lg` (Automation streak, Automation dimensions, Milestone badges, Top 10 organizations/Top 10 users leaderboard panels, Automation at a glance), and section titles `h4 lg` → `h4 md` (Enterprise streak legend, Volume/Breadth/Consistency, Your badges/Your org's badges, at-a-glance KPI labels). `AtAGlanceKpiMetric` also swapped its ad-hoc `Title h2 xl` metric value for the shared `MetricValue` component (`h2 2xl`) to match the documented metric-value tier. `HighlightsSyncTimestamp` swapped `Content component="p"` + inline font-size override for `Content component="small"` to match the documented helper tier. Metric values and helper text are unchanged in size — they sit outside the heading ladder by design. GA Dashboard is untouched: its page title is still the default `2xl`, so its existing `h3 xl` card / `h4 lg` section ladder (and the AAP-85859 nested Cost calculation KPI titles) remains correctly proportioned.
 **Why:** A card title matching the page title breaks the page > card > section visual hierarchy and reads as a design bug. Since the smaller Highlights page title is an intentional experiment (not a mistake), the fix is to cascade every level below it down one step rather than reverting the page title.
 **Where:** `DashboardSectionHeading.tsx` (new optional `size?: 'lg' | 'md'` prop, default `'lg'` so GA/AAP-85859 usages are unaffected); `HighlightsAtAGlanceCard.tsx`, `AutomationDimensionsCard.tsx`, `AutomationStreakCard.tsx`, `LeaderboardPanelCard.tsx`, `MilestoneBadgesCard.tsx` (card title `xl` → `lg`); `AutomationDimensionsCard.tsx`, `AtAGlanceKpiMetric.tsx`, `MilestoneBadgesCard.tsx`, `AutomationStreakCard.tsx` (`DashboardSectionHeading` now passed `size="md"`); `AtAGlanceKpiMetric.tsx` (metric value switched to `MetricValue`); `HighlightsSyncTimestamp.tsx` (helper text switched to `Content component="small"`); `CHANGES-Gamification.md` (G-2 typography hierarchy table).
+
+---
+
+## [Aug 13, 2026] Leaderboards tab — org-only top 10, 30-day achievements, prototype view modes
+
+**What:**
+- **Tab renamed** from "Highlights" to "Leaderboards"; URL segment changed from `/highlights` to `/leaderboards`. Old routes (`/highlights`, `/gamification`) redirect to `/leaderboards`.
+- **Top 10 leaderboard** simplified to orgs-only (users tab removed). Column header changed to "Total successful job runs" with `modifier="nowrap"`. Rank summary in `CardHeader` actions slot shows org rank + run count with crown for top 3.
+- **Milestone badges → 30-day achievements**: Card title, section headings ("Your achievements", "Your org's achievements"), help text, and all internal references updated from "badges" to "achievements". Description line added: "These achievements reset every 30 days." Earned achievement color changed from PF info (blue) to PF success (green).
+- **Automation dimensions**: Description moved underneath table title (was right-aligned on same line). "Click a dimension to update the leaderboard" instruction moved from bottom of left column to underneath "Automation dimensions" card title; info icon removed.
+- **Labels**: Streak label, "Your org" label, and "You" label changed from blue to purple (`color="purple"`).
+- **Links removed**: All link-like styling (Button variant="link", anchor tags) for names in leaderboards, dimensions, and featured template replaced with plain text spans.
+- **Prototype controls**: Added "Normal user" dropdown option (shows leaderboard content without tab navigation) and "Achievement unlocked" option (shows dismissible green success alert: "Congratulations! You unlocked the Centurion achievement"). Controls panel only visible on Leaderboards tab (path-aware rendering).
+- **Day 0 empty state**: Leaderboards tab shows "No leaderboard data yet" empty state when Day 0 selected.
+- **Design notes** updated to reflect all naming, layout, and behavioral changes.
+
+**Why:** Simplify the leaderboard to org-only view per PM direction; rename to "achievements" for clearer language; add prototype view modes (normal user, achievement unlocked, day 0) for stakeholder review; use purple labels for "you/your org" indicators; green for earned achievements to signal positive accomplishment.
+
+**Where:**
+- `AutomationDashboardPostGA.tsx` — tab label, normal user mode rendering
+- `PostGAPageRoutedTabs.tsx` — URL segment `highlights` → `leaderboards`
+- `useAwxNavigation.tsx` — route path update + redirects
+- `HighlightsLeaderboardPanel.tsx` — orgs-only table, removed users/tabs, `modifier="nowrap"` on column header
+- `MilestoneBadgesCard.tsx` — renamed to "30-day achievements", description line, green earned color
+- `AutomationDimensionsCard.tsx` — description under title, instruction moved to card header
+- `AutomationStreakCard.tsx` — purple streak label
+- `AutomationDashboardHighlights.tsx` — day 0 empty state, achievement unlocked alert
+- `GoalsPreviewControl.tsx` — normal user + achievement unlocked dropdown options
+- `dashboardSettingsUtils.ts` — new preview modes
+- `PrototypeSidebarOverlay.tsx` — path-aware visibility
+- `postGa.css` — earned achievement color green
+- `PostGaPrototypeNotes.tsx` — updated design notes

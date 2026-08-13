@@ -103,7 +103,7 @@ export function AutomationDashboardPostGADashboardTab() {
       />
       <PageDashboardContext.Provider value={pageDashboardContextValue}>
         <Scrollable marginLeft={20} marginRight={20} marginBottom={16} marginTop={16}>
-          <div ref={measureRef} style={{ width: '100%' }}>
+          <div ref={measureRef} className="post-ga-dashboard-tab" style={{ width: '100%' }}>
             <div
               style={{
                 display: 'grid',

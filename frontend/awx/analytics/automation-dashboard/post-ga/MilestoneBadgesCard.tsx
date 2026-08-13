@@ -237,7 +237,7 @@ function BadgeShelf({
 }>) {
   return (
     <div>
-      <DashboardSectionHeading title={title} help={help} size="md" />
+      <DashboardSectionHeading title={title} help={help} />
       <MilestoneBadgeGrid badges={badges} earnedIds={earnedIds} />
     </div>
   );
@@ -255,7 +255,7 @@ export function MilestoneBadgesCard() {
           <div style={{ whiteSpace: 'nowrap' }}>
             <Title
               headingLevel="h3"
-              size="lg"
+              size="xl"
               style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
             >
               {t('30-day achievements')}
@@ -292,7 +292,6 @@ export function MilestoneBadgesCard() {
             help={t(
               'Achievements your organization earned in the current 30-day window. Visible to all members of your org.'
             )}
-            size="md"
           />
           <OrgBadgeGrid badges={orgBadges} earnedIds={ORG_BADGES_EARNED} />
         </div>

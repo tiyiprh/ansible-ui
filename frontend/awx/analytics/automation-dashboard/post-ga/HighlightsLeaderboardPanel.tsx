@@ -1,9 +1,9 @@
-import { Label } from '@patternfly/react-core';
+import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { Card, CardBody, CardHeader, Label, Title } from '@patternfly/react-core';
 import { CrownIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LeaderboardPanelCard } from './LeaderboardPanelCard';
 import { LEADERBOARD_RANK_CROWN_CLASS, LeaderboardRankCell } from './LeaderboardRankCell';
 import {
   HIGHLIGHTS_CURRENT_ORG,
@@ -49,51 +49,71 @@ export function HighlightsLeaderboardPanel() {
   const { t } = useTranslation();
   const orgRows = useMemo(() => buildOrgRows(), []);
 
+  const cardTitle = t('Top 10 organizations');
+  const helpText = t(
+    'Top 10 organizations ranked by total successful job runs in the last 30 days. Ties are broken alphabetically.'
+  );
+
   return (
-    <LeaderboardPanelCard
+    <Card
       id="highlights-leaderboard-card"
-      title={t('Top 10 organizations')}
-      help={t(
-        'Top 10 organizations ranked by total successful job runs in the last 30 days. Ties are broken alphabetically.'
-      )}
-      fitContent
-      actions={
-        <LeaderboardRankSummary
-          rank={HIGHLIGHTS_CURRENT_ORG.rank}
-          rankText={t("Your org's rank: #{{rank}}", { rank: HIGHLIGHTS_CURRENT_ORG.rank })}
-          runsText={t('{{runs}} job runs', {
-            runs: HIGHLIGHTS_CURRENT_ORG.runCount.toLocaleString(),
-          })}
-        />
-      }
+      data-testid="highlights-leaderboard-card"
+      style={{ height: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0, flexShrink: 0 }}
     >
-      <Table variant="compact" borders aria-label={t('Top organizations')}>
-        <Thead>
-          <Tr>
-            <Th style={{ width: 72, minWidth: 72 }}>{t('Rank')}</Th>
-            <Th>{t('Organization')}</Th>
-            <Th modifier="nowrap">{t('Total successful job runs')}</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {orgRows.map((row) => (
-            <Tr key={row.id}>
-              <Td dataLabel={t('Rank')}>
-                <LeaderboardRankCell position={row.rank} />
-              </Td>
-              <Td dataLabel={t('Organization')}>
-                <span style={row.rank <= 3 ? { fontWeight: 700 } : undefined}>{row.name}</span>
-                {row.isCurrentOrg ? (
-                  <Label isCompact color="purple" style={{ marginLeft: 8 }}>
-                    {t('Your org')}
-                  </Label>
-                ) : null}
-              </Td>
-              <Td dataLabel={t('Total successful job runs')}>{row.runCount.toLocaleString()}</Td>
+      <CardHeader
+        actions={{
+          actions: (
+            <LeaderboardRankSummary
+              rank={HIGHLIGHTS_CURRENT_ORG.rank}
+              rankText={t("Your org's rank: #{{rank}}", { rank: HIGHLIGHTS_CURRENT_ORG.rank })}
+              runsText={t('{{runs}} job runs', {
+                runs: HIGHLIGHTS_CURRENT_ORG.runCount.toLocaleString(),
+              })}
+            />
+          ),
+          hasNoOffset: true,
+        }}
+      >
+        <div style={{ whiteSpace: 'nowrap' }}>
+          <Title
+            headingLevel="h3"
+            size="xl"
+            style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
+          >
+            {cardTitle}
+          </Title>
+          <Help title={cardTitle} help={helpText} />
+        </div>
+      </CardHeader>
+      <CardBody style={{ flex: '0 0 auto', minHeight: 0, overflow: 'visible', padding: 0 }}>
+        <Table variant="compact" borders aria-label={t('Top organizations')}>
+          <Thead>
+            <Tr>
+              <Th style={{ width: 72, minWidth: 72 }}>{t('Rank')}</Th>
+              <Th>{t('Organization')}</Th>
+              <Th modifier="nowrap">{t('Total successful job runs')}</Th>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </LeaderboardPanelCard>
+          </Thead>
+          <Tbody>
+            {orgRows.map((row) => (
+              <Tr key={row.id}>
+                <Td dataLabel={t('Rank')}>
+                  <LeaderboardRankCell position={row.rank} />
+                </Td>
+                <Td dataLabel={t('Organization')}>
+                  <span style={row.rank <= 3 ? { fontWeight: 700 } : undefined}>{row.name}</span>
+                  {row.isCurrentOrg ? (
+                    <Label isCompact color="purple" style={{ marginLeft: 8 }}>
+                      {t('Your org')}
+                    </Label>
+                  ) : null}
+                </Td>
+                <Td dataLabel={t('Total successful job runs')}>{row.runCount.toLocaleString()}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </CardBody>
+    </Card>
   );
 }

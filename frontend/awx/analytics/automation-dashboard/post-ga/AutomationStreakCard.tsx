@@ -88,7 +88,7 @@ function StreakDayStrip({
           <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }}>
             <FlexItem>
               <div style={{ whiteSpace: 'nowrap' }}>
-                <DashboardSectionHeading title={title} size="md" />
+                <DashboardSectionHeading title={title} />
               </div>
             </FlexItem>
             <FlexItem>
@@ -218,7 +218,7 @@ export function AutomationStreakCard() {
         <div style={{ whiteSpace: 'nowrap' }}>
           <Title
             headingLevel="h3"
-            size="lg"
+            size="xl"
             style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
           >
             {t('Automation at a glance')}
@@ -237,7 +237,6 @@ export function AutomationStreakCard() {
           help={t(
             'Consecutive calendar days (UTC) with at least one successful job run. Enterprise streak counts platform-wide activity; your org streak counts activity in your organization only.'
           )}
-          size="md"
         />
         <div style={{ marginTop: 8 }}>
           <StreakDayStrip

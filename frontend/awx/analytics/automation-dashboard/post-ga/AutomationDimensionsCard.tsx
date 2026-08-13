@@ -143,7 +143,7 @@ function DimensionRow({
           <Icon size="lg">{meta.icon}</Icon>
         </FlexItem>
         <FlexItem flex={{ default: 'flex_1' }}>
-          <Title headingLevel="h4" size="md" style={{ lineHeight: 1.3 }}>
+          <Title headingLevel="h4" size="lg" style={{ lineHeight: 1.3 }}>
             {meta.title}
           </Title>
           <MetricLabel>{meta.description}</MetricLabel>
@@ -202,7 +202,7 @@ export function AutomationDimensionsCard() {
           <div style={{ whiteSpace: 'nowrap' }}>
             <Title
               headingLevel="h3"
-              size="lg"
+              size="xl"
               style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
             >
               {t('Automation dimensions')}
@@ -246,7 +246,6 @@ export function AutomationDimensionsCard() {
                   'Top 10 users ranked by {{label}} in the last 30 days. You are shown in the list if you are in the top 10. Ties are broken alphabetically.',
                   { label: selectedMeta?.valueLabel }
                 )}
-                size="md"
               />
               <MetricLabel>{selectedMeta?.description}</MetricLabel>
             </div>

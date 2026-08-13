@@ -3,6 +3,7 @@ import AngleDoubleLeftIcon from '@patternfly/react-icons/dist/esm/icons/angle-do
 import AngleDoubleRightIcon from '@patternfly/react-icons/dist/esm/icons/angle-double-right-icon';
 import { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { GoalsPreviewControl } from '../../frontend/awx/analytics/automation-dashboard/post-ga/GoalsPreviewControl';
 
 const OVERLAY_Z_INDEX = 1100;
@@ -29,8 +30,17 @@ function OverlayPanel({ children }: Readonly<{ children: ReactNode }>) {
 export function PrototypeSidebarOverlay() {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
+  const { pathname } = useLocation();
 
   if (import.meta.env.VITE_DEMO_MODE !== 'true') {
+    return null;
+  }
+
+  const isLeaderboardsTab =
+    pathname.includes('/post-ga/leaderboards') ||
+    pathname.includes('/post-ga/highlights') ||
+    pathname.includes('/post-ga/gamification');
+  if (!isLeaderboardsTab) {
     return null;
   }
 

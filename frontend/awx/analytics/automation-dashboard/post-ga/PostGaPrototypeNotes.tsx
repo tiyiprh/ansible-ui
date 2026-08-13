@@ -76,6 +76,14 @@ export function GaDashboardToolbarPrototypeNote({
           </a>
           ).
         </>,
+        <>
+          <strong>Card title sizing</strong>: This tab uses a CSS override (
+          <code>.post-ga-dashboard-tab</code>) to step card titles down one size (xl → lg) so
+          they sit below a future smaller page-level title. The Leaderboards tab keeps standard
+          xl card titles. For the real implementation, consider adding a{' '}
+          <code>titleSize</code> prop to <code>PageDashboardCard</code> instead of the CSS
+          override.
+        </>,
       ]}
     />
   );
@@ -89,54 +97,26 @@ export function PostGaHighlightsPrototypeNote({
       defaultOpen={defaultOpen}
       notes={[
         <>
-          <strong>Highlights</strong> tab implements{' '}
-          <a
-            href="https://redhat.atlassian.net/browse/ANSTRAT-1976"
-            target="_blank"
-            rel="noreferrer"
-          >
-            ANSTRAT-1976
-          </a>
-          . The interim <strong>Leaderboards</strong> admin tab and{' '}
-          <strong>Gamification (concepts)</strong> tab are retired — content converges here.
+          Backend required: dedicated leaderboard/gamification metrics endpoints for streak calendar
+          states, dimension scores/ranks, org leaderboard rows, achievement eligibility, and{' '}
+          <code>last_sync</code> timestamp.
         </>,
         <>
-          Fixed <strong>30-day</strong> window for all sections. No period or organization toolbar
-          filters. Streak calendar days use <strong>UTC</strong>.
+          <strong>Admin toggle</strong>: Platform admins need a setting to enable/disable
+          gamification features platform-wide. This should be in the current Platform gateway
+          settings page. When disabled, users see only the standard dashboard without Leaderboards
+          tab content.
         </>,
         <>
-          Section order: sync timestamp → automation streak (§1) → dimensions (§2) → leaderboard
-          (§3) → milestone badges (§4) → automation at a glance (§5). Mock shapes in{' '}
-          <code>postGaMockData.ts</code> (<code>HIGHLIGHTS_*</code>, <code>MILESTONE_*</code>).
-        </>,
-        <>
-          <strong>Featured template</strong> = single template with the most runs in the 30-day
-          window, as of last sync (~hourly). <strong>Service accounts</strong> (e.g.{' '}
-          <code>awx-runner</code>) appear on the user leaderboard per spec.
-        </>,
-        <>
-          <strong>Milestone badges</strong>: 7 badges (Ignition, Week Warrior, Month Warrior,
-          Explorer, Centurion, Reliable, Accelerator). Earned/locked only — no bronze/silver/gold
-          tiers. Badges re-earn each window; no lifetime history. Org badges assume the same 7 rules
-          at org scope (pending PM confirmation).
-        </>,
-        <>
-          Backend required: dedicated highlights/gamification metrics endpoints (or extensions to
-          metrics service) for streak calendar states, dimension scores/ranks, leaderboard rows,
-          badge eligibility, and <code>last_sync</code> timestamp.
-        </>,
-        <>
-          <strong>Admin toggle</strong>: Platform admins need a setting (likely under{' '}
-          <strong>Settings → General</strong> or a new <strong>Dashboard</strong> subsection) to
-          enable/disable gamification features platform-wide. When disabled, users see only the
-          standard dashboard without Highlights tab content (streaks, badges, leaderboard).
+          <strong>Top 10 organizations + 30-day achievements cards</strong>: These sit side by side
+          using a PatternFly Grid and stack on smaller screens. The Overview page uses the
+          framework&apos;s <code>PageDashboardCard</code> + <code>PageDashboard</code> for its
+          responsive grid — consider using that for the real implementation so the cards
+          share the same responsive breakpoints as the Overview tab.
         </>,
       ]}
       questions={[
-        'Org Reliable badge: does the 20 consecutive successful jobs rule apply at org scope the same way as for individuals?',
-        'Service accounts on the user leaderboard: show a "Service account" label, distinct icon, or plain username only?',
-        'Org leaderboard ranking: successful job runs only — confirm status filter and field names when API lands.',
-        'Admin gamification toggle: gateway settings API field (e.g. gamification_enabled) vs metrics service config? Should this be a single on/off or granular per-feature (badges, streaks, leaderboard)?',
+        'Admin gamification toggle: gateway settings API field (e.g. gamification_enabled) vs metrics service config?',
       ]}
     />
   );

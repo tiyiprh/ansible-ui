@@ -9,7 +9,7 @@ export function AutomationDashboardPostGAHighlightsTab() {
 
   useRegisterPrototypeNotes({
     id: 'post-ga-highlights',
-    title: t('Highlights'),
+    title: t('Leaderboards'),
     content: <PostGaHighlightsPrototypeNote defaultOpen />,
   });
 
