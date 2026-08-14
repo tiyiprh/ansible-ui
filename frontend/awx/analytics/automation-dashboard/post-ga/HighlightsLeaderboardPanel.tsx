@@ -108,7 +108,7 @@ export function HighlightsLeaderboardPanel() {
                     </Label>
                   ) : null}
                 </Td>
-                <Td dataLabel={t('Total successful job runs')}>{row.runCount.toLocaleString()}</Td>
+                <Td dataLabel={t('Total successfuljob runs')}>{row.runCount.toLocaleString()}</Td>
               </Tr>
             ))}
           </Tbody>

@@ -290,7 +290,7 @@ export function MilestoneBadgesCard() {
           <DashboardSectionHeading
             title={t("Your org's achievements")}
             help={t(
-              'Achievements your organization earned in the current 30-day window. Visible to all members of your org.'
+              'Achievements any of the organizations you belong to earned in the current 30-day window. Visible to all members of your org.'
             )}
           />
           <OrgBadgeGrid badges={orgBadges} earnedIds={ORG_BADGES_EARNED} />

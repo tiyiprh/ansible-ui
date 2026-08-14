@@ -103,9 +103,9 @@ export function PostGaHighlightsPrototypeNote({
         </>,
         <>
           <strong>Admin toggle</strong>: Platform admins need a setting to enable/disable
-          gamification features platform-wide. This should be in the current Platform gateway
-          settings page. When disabled, users see only the standard dashboard without Leaderboards
-          tab content.
+          gamification features platform-wide for all users. This should be in the current Platform gateway
+          settings page. When disabled, admins and auditors would see only the standard dashboard without Leaderboards
+          tab content as they do today.
         </>,
         <>
           <strong>Top 10 organizations + 30-day achievements cards</strong>: These sit side by side
