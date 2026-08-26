@@ -1,4 +1,4 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import { Title } from '@patternfly/react-core';
 import { ReactNode } from 'react';
 
@@ -28,7 +28,7 @@ export function DashboardSectionHeading({
       >
         {title}
       </Title>
-      {help ? <Help title={title} help={help} /> : null}
+      {help ? <PostGaHelpPopover title={title} help={help} /> : null}
     </>
   );
 }

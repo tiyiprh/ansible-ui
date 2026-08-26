@@ -1,70 +1,66 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
-import { Card, CardBody, CardHeader, Grid, GridItem, Title } from '@patternfly/react-core';
+import { Card, CardBody, Grid, GridItem } from '@patternfly/react-core';
 import { ClusterIcon, CubesIcon, SyncAltIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
-import { AtAGlanceKpiMetric } from './AtAGlanceKpiMetric';
+import { MetricValue } from './DashboardMetricText';
+import { HighlightsSplitKpiCard } from './HighlightsSplitKpiCard';
 import { HIGHLIGHTS_AT_A_GLANCE } from './postGaMockData';
 
-const FEATURED_TEMPLATE_MAX_LENGTH = 40;
-
-function truncateTemplateName(name: string): string {
-  if (name.length <= FEATURED_TEMPLATE_MAX_LENGTH) return name;
-  return `${name.slice(0, FEATURED_TEMPLATE_MAX_LENGTH - 1)}…`;
-}
-
-export function HighlightsAtAGlanceCard() {
+export function HighlightsAtAGlanceKpiCards() {
   const { t } = useTranslation();
   const { jobsRun30Days, activeOrganizations, featuredTemplate } = HIGHLIGHTS_AT_A_GLANCE;
-  const featuredValue = `${truncateTemplateName(featuredTemplate.name)} (${featuredTemplate.runCount.toLocaleString()})`;
 
   return (
-    <Card className="post-ga-at-a-glance-card" style={{ marginBottom: 24, flexShrink: 0 }}>
-      <CardHeader>
-        <div style={{ whiteSpace: 'nowrap' }}>
-          <Title
-            headingLevel="h3"
-            size="lg"
-            style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
-          >
-            {t('Automation at a glance')}
-          </Title>
-          <Help
-            title={t('Automation at a glance')}
-            help={t('Enterprise-wide automation summary for the last 30 days.')}
-          />
-        </div>
-      </CardHeader>
-      <CardBody style={{ padding: 'var(--pf-t--global--spacer--md)' }}>
-        <Grid hasGutter className="post-ga-at-a-glance-kpi-row">
-          <GridItem sm={4} className="post-ga-at-a-glance-kpi-col">
-            <AtAGlanceKpiMetric
-              label={t('Jobs run')}
-              help={t('Total successful job runs across the platform in the last 30 days.')}
-              value={jobsRun30Days.toLocaleString()}
-              icon={<SyncAltIcon />}
-              iconStatus="info"
+    <Grid hasGutter className="post-ga-highlights-kpi-cards" style={{ marginBottom: 24 }}>
+      <GridItem md={4}>
+        <Card style={{ height: '100%', flexShrink: 0 }}>
+          <CardBody style={{ padding: 'var(--pf-t--global--spacer--md)' }}>
+            <HighlightsSplitKpiCard
+              dimensionLabel={t('Velocity')}
+              dimensionIcon={<SyncAltIcon />}
+              metricLabel={t('Jobs run')}
+              helpTitle={t('Jobs run')}
+              help={t('Total successful job runs across the platform.')}
+              value={<MetricValue>{jobsRun30Days.toLocaleString()}</MetricValue>}
             />
-          </GridItem>
-          <GridItem sm={4} className="post-ga-at-a-glance-kpi-col">
-            <AtAGlanceKpiMetric
-              label={t('Active organizations')}
-              help={t('Organizations with at least one successful job run in the last 30 days.')}
-              value={activeOrganizations.toLocaleString()}
-              icon={<ClusterIcon />}
-              iconStatus="info"
+          </CardBody>
+        </Card>
+      </GridItem>
+      <GridItem md={4}>
+        <Card style={{ height: '100%', flexShrink: 0 }}>
+          <CardBody style={{ padding: 'var(--pf-t--global--spacer--md)' }}>
+            <HighlightsSplitKpiCard
+              dimensionLabel={t('Reach')}
+              dimensionIcon={<ClusterIcon />}
+              metricLabel={t('Active orgs')}
+              helpTitle={t('Active orgs')}
+              help={t('Organizations with at least one successful job run.')}
+              value={<MetricValue>{activeOrganizations.toLocaleString()}</MetricValue>}
             />
-          </GridItem>
-          <GridItem sm={4} className="post-ga-at-a-glance-kpi-col">
-            <AtAGlanceKpiMetric
-              label={t('Featured template')}
-              help={t('Most-used job template by run count in the last 30 days.')}
-              value={featuredValue}
-              icon={<CubesIcon />}
-              iconStatus="info"
+          </CardBody>
+        </Card>
+      </GridItem>
+      <GridItem md={4}>
+        <Card style={{ height: '100%', flexShrink: 0 }}>
+          <CardBody style={{ padding: 'var(--pf-t--global--spacer--md)' }}>
+            <HighlightsSplitKpiCard
+              dimensionLabel={t('Usage')}
+              dimensionIcon={<CubesIcon />}
+              metricLabel={t('Featured template')}
+              helpTitle={t('Featured template')}
+              help={t('Most-used job template by run count. Ties are broken alphabetically.')}
+              value={<MetricValue>{featuredTemplate.runCount.toLocaleString()}</MetricValue>}
+              caption={
+                <span style={{ fontSize: 'var(--pf-t--global--font--size--sm)' }}>
+                  {featuredTemplate.name}
+                </span>
+              }
             />
-          </GridItem>
-        </Grid>
-      </CardBody>
-    </Card>
+          </CardBody>
+        </Card>
+      </GridItem>
+    </Grid>
   );
 }
+
+/** @deprecated Use HighlightsAtAGlanceKpiCards */
+export const HighlightsAtAGlanceCard = HighlightsAtAGlanceKpiCards;

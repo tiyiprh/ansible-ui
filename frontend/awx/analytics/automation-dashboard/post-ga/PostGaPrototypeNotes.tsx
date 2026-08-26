@@ -108,6 +108,15 @@ export function PostGaHighlightsPrototypeNote({
           tab content as they do today.
         </>,
         <>
+          <strong>Jobs run</strong>, <strong>Active organizations</strong>, and{' '}
+          <strong>Featured template</strong> are separate KPI cards in one row;{' '}
+          <strong>Automation streak</strong> is its own card below.
+        </>,
+        <>
+          Earned badge tooltips include an <strong>Earned</strong> date from mock data (
+          <code>earned_at</code> from metrics service in product).
+        </>,
+        <>
           <strong>Top 10 organizations + 30-day achievements cards</strong>: These sit side by side
           using a PatternFly Grid and stack on smaller screens. The Overview page uses the
           framework&apos;s <code>PageDashboardCard</code> + <code>PageDashboard</code> for its

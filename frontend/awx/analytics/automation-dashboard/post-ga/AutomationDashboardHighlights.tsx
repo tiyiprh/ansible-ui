@@ -11,12 +11,13 @@ import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AutomationDimensionsCard } from './AutomationDimensionsCard';
 import { AutomationStreakCard } from './AutomationStreakCard';
+import { HighlightsAtAGlanceKpiCards } from './HighlightsAtAGlanceCard';
 import {
   getGoalsPreviewMode,
   subscribeDashboardSettings,
 } from './dashboardSettingsUtils';
 import { HighlightsLeaderboardPanel } from './HighlightsLeaderboardPanel';
-import { HighlightsSyncTimestamp } from './HighlightsSyncTimestamp';
+import { HighlightsPageIntro } from './HighlightsPageIntro';
 import { MilestoneBadgesCard } from './MilestoneBadgesCard';
 import './postGa.css';
 
@@ -62,7 +63,8 @@ export function AutomationDashboardHighlights() {
           style={{ marginBottom: 16 }}
         />
       ) : null}
-      <HighlightsSyncTimestamp />
+      <HighlightsPageIntro />
+      <HighlightsAtAGlanceKpiCards />
       <AutomationStreakCard />
       <AutomationDimensionsCard />
       <Grid hasGutter style={{ marginBottom: 24 }}>

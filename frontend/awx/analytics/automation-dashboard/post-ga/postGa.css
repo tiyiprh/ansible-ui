@@ -43,6 +43,8 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  /* Theme-aware decorative accent — adapts in light and dark via PF semantic token */
+  --post-ga-accent-color: var(--pf-t--global--icon--color--subtle);
 }
 
 .post-ga-highlights-tab > * {
@@ -116,6 +118,72 @@
   flex-direction: column;
   height: 100%;
   min-height: 100%;
+}
+
+.post-ga-highlights-kpi-cards {
+  flex-shrink: 0;
+}
+
+.post-ga-highlights-split-kpi {
+  width: 100%;
+  min-height: 100%;
+}
+
+.post-ga-highlights-split-kpi__dimension {
+  flex: 3 1 0;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--pf-t--global--spacer--sm);
+}
+
+.post-ga-highlights-split-kpi__metric {
+  flex: 7 1 0;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--pf-t--global--spacer--sm);
+}
+
+.post-ga-highlights-split-kpi__metric-content {
+  align-items: flex-start;
+}
+
+.post-ga-highlights-split-kpi__label-row {
+  white-space: nowrap;
+}
+
+.post-ga-accent-icon {
+  --pf-v6-c-icon__content--m-custom--Color: var(--post-ga-accent-color);
+}
+
+.post-ga-help-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  vertical-align: middle;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.post-ga-help-popover-trigger__icon {
+  --pf-v6-c-icon__content--m-custom--Color: var(--pf-t--global--icon--color--regular);
+}
+
+.post-ga-help-popover-trigger:hover .post-ga-help-popover-trigger__icon,
+.post-ga-help-popover-trigger:focus-visible .post-ga-help-popover-trigger__icon {
+  --pf-v6-c-icon__content--m-custom--Color: var(--pf-t--global--text--color--regular);
+}
+
+.post-ga-help-popover-trigger:focus-visible {
+  outline: 2px solid var(--pf-t--global--border--color--brand--default);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .post-ga-at-a-glance-card {
@@ -194,6 +262,11 @@
 .post-ga-at-a-glance-kpi-heading {
   text-align: center;
   white-space: nowrap;
+}
+
+.post-ga-at-a-glance-kpi-heading--wrap {
+  white-space: normal;
+  max-width: 100%;
 }
 
 .post-ga-at-a-glance-kpi .pf-v6-c-icon {

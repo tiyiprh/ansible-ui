@@ -1,4 +1,4 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import { PageChartLegend } from '@ansible/ansible-ui-framework/PageDashboard/PageChartLegend';
 import {
   Card,
@@ -11,12 +11,11 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { ClusterIcon, CubesIcon, FireIcon, SyncAltIcon } from '@patternfly/react-icons';
+import { FireIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
-import { AtAGlanceKpiMetric } from './AtAGlanceKpiMetric';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel } from './DashboardMetricText';
-import { HIGHLIGHTS_AT_A_GLANCE, HIGHLIGHTS_STREAK } from './postGaMockData';
+import { HIGHLIGHTS_STREAK } from './postGaMockData';
 
 type StreakDay = (typeof HIGHLIGHTS_STREAK.calendarDays)[number];
 type Translate = (key: string, options?: Record<string, unknown>) => string;
@@ -141,73 +140,6 @@ function StreakDayStrip({
   );
 }
 
-const FEATURED_TEMPLATE_MAX_LENGTH = 40;
-
-function truncateTemplateName(name: string): string {
-  if (name.length <= FEATURED_TEMPLATE_MAX_LENGTH) return name;
-  return `${name.slice(0, FEATURED_TEMPLATE_MAX_LENGTH - 1)}…`;
-}
-
-function AtAGlanceSection() {
-  const { t } = useTranslation();
-  const { jobsRun30Days, activeOrganizations, featuredTemplate } = HIGHLIGHTS_AT_A_GLANCE;
-
-  const featuredTemplateCaption = (
-    <span style={{ fontSize: 'var(--pf-t--global--font--size--sm)', textAlign: 'center' }}>
-      {truncateTemplateName(featuredTemplate.name)}
-    </span>
-  );
-
-  return (
-    <div>
-      <Flex hasGutter style={{ marginTop: 8 }} alignItems={{ default: 'alignItemsFlexStart' }}>
-        <FlexItem
-          style={{
-            flex: 1,
-            borderRight: '1px solid var(--pf-t--global--border--color--default)',
-            paddingRight: 'var(--pf-t--global--spacer--md)',
-          }}
-        >
-          <AtAGlanceKpiMetric
-            label={t('Jobs run')}
-            help={t('Total successful job runs across the platform in the last 30 days.')}
-            value={jobsRun30Days.toLocaleString()}
-            icon={<SyncAltIcon />}
-            iconStatus="info"
-          />
-        </FlexItem>
-        <FlexItem
-          style={{
-            flex: 1,
-            borderRight: '1px solid var(--pf-t--global--border--color--default)',
-            paddingRight: 'var(--pf-t--global--spacer--md)',
-          }}
-        >
-          <AtAGlanceKpiMetric
-            label={t('Active organizations')}
-            help={t('Organizations with at least one successful job run in the last 30 days.')}
-            value={activeOrganizations.toLocaleString()}
-            icon={<ClusterIcon />}
-            iconStatus="info"
-          />
-        </FlexItem>
-        <FlexItem style={{ flex: 1 }}>
-          <AtAGlanceKpiMetric
-            label={t('Featured template')}
-            help={t(
-              'Most-used job template by run count in the last 30 days. Ties are broken alphabetically.'
-            )}
-            value={`${featuredTemplate.runCount.toLocaleString()} ${t('runs')}`}
-            caption={featuredTemplateCaption}
-            icon={<CubesIcon />}
-            iconStatus="info"
-          />
-        </FlexItem>
-      </Flex>
-    </div>
-  );
-}
-
 export function AutomationStreakCard() {
   const { t } = useTranslation();
   const { enterpriseStreakDays, orgStreakDays, calendarDays } = HIGHLIGHTS_STREAK;
@@ -221,41 +153,33 @@ export function AutomationStreakCard() {
             size="xl"
             style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
           >
-            {t('Automation at a glance')}
+            {t('Automation streak')}
           </Title>
-          <Help
-            title={t('Automation at a glance')}
-            help={t('Enterprise-wide automation summary for the last 30 days.')}
+          <PostGaHelpPopover
+            title={t('Automation streak')}
+            help={t(
+              'Consecutive calendar days (UTC) with at least one successful job run. Enterprise streak counts platform-wide activity; your org streak counts activity in your organization only.'
+            )}
           />
         </div>
       </CardHeader>
       <CardBody>
-        <AtAGlanceSection />
-        <Divider style={{ margin: '16px 0' }} />
-        <DashboardSectionHeading
-          title={t('Automation streak')}
-          help={t(
-            'Consecutive calendar days (UTC) with at least one successful job run. Enterprise streak counts platform-wide activity; your org streak counts activity in your organization only.'
-          )}
+        <StreakDayStrip
+          title={t('Enterprise')}
+          streakDays={enterpriseStreakDays}
+          showLegend
+          days={calendarDays}
+          isSuccess={(day) => day.state !== 'none'}
+          getRuns={(day) => day.enterpriseRuns}
         />
-        <div style={{ marginTop: 8 }}>
-          <StreakDayStrip
-            title={t('Enterprise')}
-            streakDays={enterpriseStreakDays}
-            showLegend
-            days={calendarDays}
-            isSuccess={(day) => day.state !== 'none'}
-            getRuns={(day) => day.enterpriseRuns}
-          />
-          <Divider style={{ margin: '16px 0' }} />
-          <StreakDayStrip
-            title={t('Your org')}
-            streakDays={orgStreakDays}
-            days={calendarDays}
-            isSuccess={(day) => day.state === 'enterpriseAndOrg'}
-            getRuns={(day) => day.orgRuns}
-          />
-        </div>
+        <Divider style={{ margin: '16px 0' }} />
+        <StreakDayStrip
+          title={t('Your org')}
+          streakDays={orgStreakDays}
+          days={calendarDays}
+          isSuccess={(day) => day.state === 'enterpriseAndOrg'}
+          getRuns={(day) => day.orgRuns}
+        />
       </CardBody>
     </Card>
   );

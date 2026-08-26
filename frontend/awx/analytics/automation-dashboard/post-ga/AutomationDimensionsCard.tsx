@@ -21,7 +21,7 @@ import {
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel, MetricValue } from './DashboardMetricText';
 import { LEADERBOARD_RANK_CROWN_CLASS, LeaderboardRankCell } from './LeaderboardRankCell';
@@ -39,10 +39,10 @@ function abbreviateName(name: string): string {
 type DimensionKey = keyof typeof HIGHLIGHTS_DIMENSIONS;
 
 /**
- * PatternFly's semantic "info" status token — purple, per PF6's status color mapping.
- * Used for both the row icons and the bars so they read as one consistent color.
+ * Highlights accent — theme-aware via --pf-t--global--icon--color--subtle.
+ * Used for dimension row icons and leaderboard bar fills.
  */
-const DIMENSION_ACCENT_COLOR = 'var(--pf-t--global--color--status--info--default)';
+const DIMENSION_ACCENT_COLOR = 'var(--post-ga-accent-color)';
 const DIMENSION_BAR_COLOR = DIMENSION_ACCENT_COLOR;
 const DIMENSION_BAR_MAX_WIDTH = 180;
 
@@ -173,21 +173,21 @@ export function AutomationDimensionsCard() {
     {
       key: 'volume',
       title: t('Volume'),
-      description: t('Total number of successful job runs you triggered in the last 30 days'),
+      description: t('Total number of successful job runs you triggered'),
       icon: <ChartBarIcon style={{ color: DIMENSION_ACCENT_COLOR }} />,
       valueLabel: t('job runs'),
     },
     {
       key: 'breadth',
       title: t('Breadth'),
-      description: t('Number of distinct job templates you executed in the last 30 days'),
+      description: t('Number of distinct job templates you executed'),
       icon: <CubesIcon style={{ color: DIMENSION_ACCENT_COLOR }} />,
       valueLabel: t('distinct templates'),
     },
     {
       key: 'consistency',
       title: t('Consistency'),
-      description: t('Number of days with at least one successful job run in the last 30 days'),
+      description: t('Number of days with at least one successful job run'),
       icon: <CalendarAltIcon style={{ color: DIMENSION_ACCENT_COLOR }} />,
       valueLabel: t('active days'),
     },
@@ -207,10 +207,10 @@ export function AutomationDimensionsCard() {
             >
               {t('Automation dimensions')}
             </Title>
-            <Help
+            <PostGaHelpPopover
               title={t('Automation dimensions')}
               help={t(
-                'Three scores that capture different aspects of your automation activity in the 30-day window. Rank is among all users on this platform. Ties are broken alphabetically.'
+                'Three scores that capture different aspects of your automation activity. Rank is among all users on this platform. Ties are broken alphabetically.'
               )}
             />
           </div>
@@ -243,7 +243,7 @@ export function AutomationDimensionsCard() {
               <DashboardSectionHeading
                 title={t('Top 10 — {{dimension}}', { dimension: selectedMeta?.title })}
                 help={t(
-                  'Top 10 users ranked by {{label}} in the last 30 days. You are shown in the list if you are in the top 10. Ties are broken alphabetically.',
+                  'Top 10 users ranked by {{label}}. You are shown in the list if you are in the top 10. Ties are broken alphabetically.',
                   { label: selectedMeta?.valueLabel }
                 )}
               />

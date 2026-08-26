@@ -512,4 +512,16 @@ export const MILESTONE_BADGES_EARNED_USER: MilestoneBadgeId[] = [
   'centurion',
 ];
 
+export const MILESTONE_BADGES_EARNED_AT: Partial<Record<MilestoneBadgeId, string>> = {
+  ignition: '2026-08-02',
+  weekWarrior: '2026-08-10',
+  explorer: '2026-08-18',
+  centurion: '2026-08-22',
+};
+
 export const ORG_BADGES_EARNED: OrgBadgeId[] = ['sustained', 'rising'];
+
+export const ORG_BADGES_EARNED_AT: Partial<Record<OrgBadgeId, string>> = {
+  sustained: '2026-08-15',
+  rising: '2026-08-20',
+};

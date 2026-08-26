@@ -1,4 +1,4 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import {
   Card,
   CardBody,
@@ -62,7 +62,7 @@ export function LeaderboardPanelCard({
           >
             {title}
           </Title>
-          <Help title={title} help={help} />
+          <PostGaHelpPopover title={title} help={help} />
         </div>
       </CardHeader>
       <CardBody

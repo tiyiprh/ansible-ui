@@ -14,8 +14,9 @@ export function AtAGlanceKpiMetric({
   icon,
   iconStatus,
   caption,
+  labelWrap,
 }: Readonly<{
-  label: string;
+  label?: string;
   /** Omit when `description` already shows the definition as visible text. */
   help?: string;
   /** Visible one-line definition shown under the label, as an alternative to a hover-only help popover. */
@@ -27,6 +28,8 @@ export function AtAGlanceKpiMetric({
   iconStatus: KpiIconStatus;
   /** Optional small caption rendered under the value, still centered with the rest of the tile. */
   caption?: ReactNode;
+  /** Allow the label row to wrap (e.g. long inline template names). */
+  labelWrap?: boolean;
 }>) {
   return (
     <Flex
@@ -38,9 +41,17 @@ export function AtAGlanceKpiMetric({
       <Icon size="xl" status={iconStatus}>
         {icon}
       </Icon>
-      <div className="post-ga-at-a-glance-kpi-heading">
-        <DashboardSectionHeading title={label} help={help} size="md" />
-      </div>
+      {label ? (
+        <div
+          className={
+            labelWrap
+              ? 'post-ga-at-a-glance-kpi-heading post-ga-at-a-glance-kpi-heading--wrap'
+              : 'post-ga-at-a-glance-kpi-heading'
+          }
+        >
+          <DashboardSectionHeading title={label} help={help} size="md" />
+        </div>
+      ) : null}
       {description ? <MetricLabel>{description}</MetricLabel> : null}
       {valueElement ?? (value ? <MetricValue>{value}</MetricValue> : null)}
       {caption}

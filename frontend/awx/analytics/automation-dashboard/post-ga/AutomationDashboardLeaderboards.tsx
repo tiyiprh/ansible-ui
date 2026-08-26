@@ -1,4 +1,4 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import {
   IFilterState,
   PageToolbarFilters,
@@ -103,7 +103,7 @@ function LeaderboardPanelCard({
         >
           {title}
         </Title>
-        <Help title={title} help={help} />
+        <PostGaHelpPopover title={title} help={help} />
       </CardHeader>
       <CardBody
         style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: isEmpty || loading ? undefined : 0 }}

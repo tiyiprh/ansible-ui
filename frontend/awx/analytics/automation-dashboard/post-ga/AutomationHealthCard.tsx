@@ -1,4 +1,4 @@
-import { Help } from '@ansible/ansible-ui-framework/components/Help';
+import { PostGaHelpPopover } from './PostGaHelpPopover';
 import { PageChartContainer } from '@ansible/ansible-ui-framework';
 import {
   pfDanger,
@@ -254,7 +254,7 @@ export function AutomationHealthCard() {
         <Title headingLevel="h3" size="xl" style={{ display: 'inline-block', verticalAlign: '-0.15em' }}>
           {t('Automation health')}
         </Title>
-        <Help
+        <PostGaHelpPopover
           title={t('Automation health')}
           help={t('Key health metrics for your automation platform including job success rate, execution velocity, and template reuse.')}
         />
