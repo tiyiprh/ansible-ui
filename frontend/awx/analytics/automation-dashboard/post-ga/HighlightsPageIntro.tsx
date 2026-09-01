@@ -1,4 +1,4 @@
-import { Content, Icon } from '@patternfly/react-core';
+import { Content, Flex, FlexItem, Icon } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 import { HIGHLIGHTS_LAST_SYNC } from './postGaMockData';
@@ -9,34 +9,39 @@ export function HighlightsPageIntro() {
   const formatted = syncedAt.toLocaleString(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-    timeZone: 'UTC',
   });
 
   return (
-    <div style={{ marginBottom: 'var(--pf-t--global--spacer--md)' }}>
-      <Content
-        component="small"
-        style={{ color: 'var(--pf-t--global--text--color--subtle)', marginBottom: 8 }}
-      >
-        {t(
-          'All data shown is for the last 30 days, based on your most active organization. Platform rankings show activity across all organizations.'
-        )}
-      </Content>
-      <Content
-        component="small"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          color: 'var(--pf-t--global--text--color--subtle)',
-        }}
-      >
-        <Icon size="sm">
-          <InfoCircleIcon color="var(--pf-t--global--text--color--subtle)" />
-        </Icon>
-        {t('Last synced {{timestamp}} UTC', { timestamp: formatted })}
-      </Content>
-    </div>
+    <Flex
+      justifyContent={{ default: 'justifyContentSpaceBetween' }}
+      alignItems={{ default: 'alignItemsCenter' }}
+      flexWrap={{ default: 'wrap' }}
+      gap={{ default: 'gapSm' }}
+      style={{ marginBottom: 'var(--pf-t--global--spacer--md)' }}
+    >
+      <FlexItem>
+        <Content component="small" style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>
+          {t('Data shown below is based on the last 30 days of your activity.')}
+        </Content>
+      </FlexItem>
+      <FlexItem style={{ marginLeft: 'auto' }}>
+        <Content
+          component="small"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            color: 'var(--pf-t--global--text--color--subtle)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <Icon size="sm">
+            <InfoCircleIcon color="var(--pf-t--global--text--color--subtle)" />
+          </Icon>
+          {t('Updated: {{timestamp}}', { timestamp: formatted })}
+        </Content>
+      </FlexItem>
+    </Flex>
   );
 }
 

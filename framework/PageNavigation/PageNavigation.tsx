@@ -124,7 +124,9 @@ function PageNavigationItemComponent(props: { item: PageNavigationItem; baseRout
     defaultTabDestination ??
     ('id' in item && typeof item.id === 'string' && getPageUrl(item.id) ? getPageUrl(item.id) : navPath);
 
-  const isActive = !!useMatch(destination + '/*');
+  // Default-tab parents (e.g. post-ga → dashboard) should stay active on sibling tabs (leaderboards).
+  const activeMatchPath = defaultTabDestination ? navPath : destination;
+  const isActive = !!useMatch(activeMatchPath + '/*');
 
   if (item.path === '/' && 'children' in item) {
     return <PageNavigationItems items={item.children} baseRoute={''} />;

@@ -31,16 +31,16 @@ function LeaderboardRankSummary({
 }: Readonly<{ rank: number; rankText: string; runsText: string }>) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end' }}>
+      <div style={{ textAlign: 'right', fontSize: 12, whiteSpace: 'nowrap' }}>
+        <div style={{ fontWeight: 600 }}>{rankText}</div>
+        <div style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>{runsText}</div>
+      </div>
       {rank <= 3 ? (
         <CrownIcon
           className={LEADERBOARD_RANK_CROWN_CLASS[rank as 1 | 2 | 3]}
           style={{ fontSize: 30, flexShrink: 0 }}
         />
       ) : null}
-      <div style={{ textAlign: 'right', fontSize: 12, whiteSpace: 'nowrap' }}>
-        <div style={{ fontWeight: 600 }}>{rankText}</div>
-        <div style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>{runsText}</div>
-      </div>
     </div>
   );
 }
@@ -65,7 +65,7 @@ export function HighlightsLeaderboardPanel() {
           actions: (
             <LeaderboardRankSummary
               rank={HIGHLIGHTS_CURRENT_ORG.rank}
-              rankText={t("Your org's rank: #{{rank}}", { rank: HIGHLIGHTS_CURRENT_ORG.rank })}
+              rankText={t("Your organization's rank: #{{rank}}", { rank: HIGHLIGHTS_CURRENT_ORG.rank })}
               runsText={t('{{runs}} job runs', {
                 runs: HIGHLIGHTS_CURRENT_ORG.runCount.toLocaleString(),
               })}
@@ -104,7 +104,7 @@ export function HighlightsLeaderboardPanel() {
                   <span style={row.rank <= 3 ? { fontWeight: 700 } : undefined}>{row.name}</span>
                   {row.isCurrentOrg ? (
                     <Label isCompact color="purple" style={{ marginLeft: 8 }}>
-                      {t('Your org')}
+                      {t('Your organization')}
                     </Label>
                   ) : null}
                 </Td>

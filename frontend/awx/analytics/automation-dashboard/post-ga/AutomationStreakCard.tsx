@@ -102,8 +102,14 @@ function StreakDayStrip({
               horizontal
               showLegendCount={false}
               legend={[
-                { label: t('Successful job run'), color: '#3d7317' },
-                { label: t('No activity'), color: '#e0e0e0' },
+                {
+                  label: t('Successful job run'),
+                  color: 'var(--post-ga-streak-success-color)',
+                },
+                {
+                  label: t('No successful job run'),
+                  color: 'var(--post-ga-streak-empty-color)',
+                },
               ]}
             />
           </FlexItem>
@@ -153,10 +159,10 @@ export function AutomationStreakCard() {
             size="xl"
             style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
           >
-            {t('Automation streak')}
+            {t('Streak')}
           </Title>
           <PostGaHelpPopover
-            title={t('Automation streak')}
+            title={t('Streak')}
             help={t(
               'Consecutive calendar days (UTC) with at least one successful job run. Enterprise streak counts platform-wide activity; your org streak counts activity in your organization only.'
             )}
@@ -174,7 +180,7 @@ export function AutomationStreakCard() {
         />
         <Divider style={{ margin: '16px 0' }} />
         <StreakDayStrip
-          title={t('Your org')}
+          title={t('Your organization')}
           streakDays={orgStreakDays}
           days={calendarDays}
           isSuccess={(day) => day.state === 'enterpriseAndOrg'}

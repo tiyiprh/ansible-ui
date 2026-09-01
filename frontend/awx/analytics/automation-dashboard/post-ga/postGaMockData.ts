@@ -379,6 +379,8 @@ export const HIGHLIGHTS_DIMENSIONS = {
 export type HighlightsDimensionLeaderboardRow = {
   id: string;
   name: string;
+  /** Fallback when platform user is not loaded (prototype mock). */
+  username?: string;
   value: number;
   isCurrentUser?: boolean;
 };
@@ -387,8 +389,8 @@ export type HighlightsDimensionLeaderboardRow = {
  * Per-dimension top-10 leaderboards (ANSTRAT-1976: "each dimension has its own ranked
  * leaderboard, top 10, same medal rules as the main leaderboard"). Volume and Breadth place
  * "You" at the rank/score already declared in HIGHLIGHTS_DIMENSIONS above, so the tile and
- * the list always agree. Consistency intentionally omits "You" — the user's rank (14) falls
- * outside the top 10 for that dimension, so no "You" row/label appears in that list.
+ * the list always agree. Consistency intentionally omits the current user — the user's rank (14) falls
+ * outside the top 10 for that dimension, so no current-user row appears in that list.
  */
 export const HIGHLIGHTS_DIMENSION_LEADERBOARDS: Record<
   keyof typeof HIGHLIGHTS_DIMENSIONS,
@@ -397,25 +399,25 @@ export const HIGHLIGHTS_DIMENSION_LEADERBOARDS: Record<
   volume: [
     { id: 'u-6', name: 'Sam Lee', value: 612 },
     { id: 'u-2', name: 'Ana Garcia', value: 540 },
-    { id: 'current-user', name: 'Jamie Ortiz', value: 487, isCurrentUser: true },
+    { id: 'current-user', name: 'Jamie Ortiz', username: 'demo-admin', value: 487, isCurrentUser: true },
     { id: 'u-3', name: 'Michael Chen', value: 430 },
-    { id: 'u-7', name: 'Jordan Kim', value: 388 },
-    { id: 'u-4', name: 'Karen Wilson', value: 350 },
-    { id: 'u-8', name: 'Taylor Brooks', value: 301 },
-    { id: 'u-5', name: 'Raj Patel', value: 275 },
-    { id: 'u-9', name: 'Casey Morgan', value: 240 },
+    { id: 'sa-1', name: 'awx-runner', username: 'awx-runner', value: 388 },
+    { id: 'u-7', name: 'Jordan Kim', value: 350 },
+    { id: 'u-1', name: 'jsmith', username: 'jsmith', value: 301 },
+    { id: 'sa-3', name: 'AAP-SVC', username: 'AAP-SVC', value: 255 },
+    { id: 'sa-2', name: 'deploy-bot', username: 'deploy-bot', value: 240 },
     { id: 'u-10', name: 'Priya Nair', value: 205 },
   ],
   breadth: [
-    { id: 'current-user', name: 'Jamie Ortiz', value: 12, isCurrentUser: true },
+    { id: 'current-user', name: 'Jamie Ortiz', username: 'demo-admin', value: 12, isCurrentUser: true },
     { id: 'u-2', name: 'Ana Garcia', value: 11 },
     { id: 'u-3', name: 'Michael Chen', value: 10 },
     { id: 'u-6', name: 'Sam Lee', value: 9 },
+    { id: 'sa-1', name: 'awx-runner', username: 'awx-runner', value: 8 },
     { id: 'u-4', name: 'Karen Wilson', value: 8 },
-    { id: 'u-7', name: 'Jordan Kim', value: 8 },
-    { id: 'u-5', name: 'Raj Patel', value: 7 },
+    { id: 'u-1', name: 'jsmith', username: 'jsmith', value: 7 },
     { id: 'u-8', name: 'Taylor Brooks', value: 6 },
-    { id: 'u-9', name: 'Casey Morgan', value: 5 },
+    { id: 'sa-2', name: 'deploy-bot', username: 'deploy-bot', value: 5 },
     { id: 'u-10', name: 'Priya Nair', value: 4 },
   ],
   consistency: [
@@ -423,11 +425,11 @@ export const HIGHLIGHTS_DIMENSION_LEADERBOARDS: Record<
     { id: 'u-2', name: 'Ana Garcia', value: 28 },
     { id: 'u-6', name: 'Sam Lee', value: 27 },
     { id: 'u-4', name: 'Karen Wilson', value: 25 },
-    { id: 'u-7', name: 'Jordan Kim', value: 21 },
+    { id: 'sa-1', name: 'awx-runner', username: 'awx-runner', value: 21 },
     { id: 'u-5', name: 'Raj Patel', value: 19 },
-    { id: 'u-8', name: 'Taylor Brooks', value: 17 },
+    { id: 'u-1', name: 'jsmith', username: 'jsmith', value: 17 },
     { id: 'u-9', name: 'Casey Morgan', value: 15 },
-    { id: 'u-11', name: 'Morgan Lee', value: 13 },
+    { id: 'sa-2', name: 'deploy-bot', username: 'deploy-bot', value: 13 },
     { id: 'u-10', name: 'Priya Nair', value: 12 },
   ],
 };
@@ -451,8 +453,7 @@ export const HIGHLIGHTS_USER_LEADERBOARD: HighlightsLeaderboardRow[] = [
   { id: 'u-9', name: 'Casey Morgan', runCount: 98 },
 ];
 
-/** Name is the logged-in user's real display name — the "You" label (not this name) is what
- * indicates ownership, same as everywhere else names are shown in the product. */
+/** Display name for mock leaderboard context; the dimension list shows username on the label. */
 export const HIGHLIGHTS_CURRENT_USER: HighlightsLeaderboardRow & { rank: number } = {
   id: 'current-user',
   name: 'Jamie Ortiz',

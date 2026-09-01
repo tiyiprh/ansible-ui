@@ -110,11 +110,7 @@ export function PostGaHighlightsPrototypeNote({
         <>
           <strong>Jobs run</strong>, <strong>Active organizations</strong>, and{' '}
           <strong>Featured template</strong> are separate KPI cards in one row;{' '}
-          <strong>Automation streak</strong> is its own card below.
-        </>,
-        <>
-          Earned badge tooltips include an <strong>Earned</strong> date from mock data (
-          <code>earned_at</code> from metrics service in product).
+          <strong>Streak</strong> is its own card below.
         </>,
         <>
           <strong>Top 10 organizations + 30-day achievements cards</strong>: These sit side by side

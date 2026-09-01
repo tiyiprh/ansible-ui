@@ -21,6 +21,7 @@ import {
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePlatformActiveUser } from '../../../../../platform/main/PlatformActiveUserProvider';
 import { PostGaHelpPopover } from './PostGaHelpPopover';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import { MetricLabel, MetricValue } from './DashboardMetricText';
@@ -31,9 +32,21 @@ import {
   type HighlightsDimensionLeaderboardRow,
 } from './postGaMockData';
 
-function abbreviateName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return parts.map((p) => p[0].toUpperCase()).join('');
+function getDimensionLeaderboardUserLabel(
+  row: HighlightsDimensionLeaderboardRow,
+  activeUsername?: string
+): string {
+  if (row.isCurrentUser) {
+    return activeUsername ?? row.username ?? row.name;
+  }
+
+  const nameParts = row.name.trim().split(/\s+/).filter(Boolean);
+  if (nameParts.length >= 2) {
+    return nameParts.map((part) => (part[0] ?? '').toUpperCase()).join('');
+  }
+
+  const handle = row.username ?? row.name;
+  return handle.slice(0, 2);
 }
 
 type DimensionKey = keyof typeof HIGHLIGHTS_DIMENSIONS;
@@ -62,7 +75,9 @@ function DimensionBarListRow({
   maxValue,
 }: Readonly<{ row: HighlightsDimensionLeaderboardRow; rank: number; maxValue: number }>) {
   const { t } = useTranslation();
+  const { activePlatformUser } = usePlatformActiveUser();
   const widthPct = maxValue > 0 ? Math.max(4, Math.round((row.value / maxValue) * 100)) : 0;
+  const displayLabel = getDimensionLeaderboardUserLabel(row, activePlatformUser?.username);
 
   return (
     <Flex
@@ -75,7 +90,7 @@ function DimensionBarListRow({
       </FlexItem>
       <FlexItem style={{ width: 150, flexShrink: 0 }}>
         <span style={rank <= 3 ? { fontWeight: 700 } : undefined}>
-          {row.isCurrentUser ? row.name : abbreviateName(row.name)}
+          {displayLabel}
         </span>
         {row.isCurrentUser ? (
           <Label isCompact color="purple" style={{ marginLeft: 8 }}>
@@ -205,17 +220,17 @@ export function AutomationDimensionsCard() {
               size="xl"
               style={{ display: 'inline-block', verticalAlign: '-0.15em', lineHeight: 1.2 }}
             >
-              {t('Automation dimensions')}
+              {t('Activity levels')}
             </Title>
             <PostGaHelpPopover
-              title={t('Automation dimensions')}
+              title={t('Activity levels')}
               help={t(
                 'Three scores that capture different aspects of your automation activity. Rank is among all users on this platform. Ties are broken alphabetically.'
               )}
             />
           </div>
           <MetricLabel>
-            {t('Click a dimension to update the leaderboard.')}
+            {t('Click a level to update the leaderboard.')}
           </MetricLabel>
         </div>
       </CardHeader>
@@ -224,7 +239,7 @@ export function AutomationDimensionsCard() {
           <FlexItem flex={{ default: 'flex_1' }}>
             <SimpleList
               isControlled={false}
-              aria-label={t('Automation dimensions')}
+              aria-label={t('Activity levels')}
               className="post-ga-dimension-list"
             >
               {dimensions.map((dimension) => (

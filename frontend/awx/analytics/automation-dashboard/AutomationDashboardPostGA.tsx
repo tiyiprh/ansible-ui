@@ -19,7 +19,7 @@ export function AutomationDashboardPostGA() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const description = t(
-    'View automation performance, goals, and cost savings for your organization. Filter by period and organization, or save custom views as reports.'
+    'View automation performance, goals, and cost savings for your organization.'
   );
   const { isLoading } = useAutomationDashboardCollectionStatus();
   const previewMode = useSyncExternalStore(

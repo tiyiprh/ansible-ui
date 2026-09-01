@@ -12,8 +12,11 @@ export const gatewayHandlers = [
   http.post(`${GW}/session/login/`, () =>
     HttpResponse.json({ token: 'demo-session-token' })
   ),
-  http.get(`${GW}/session/`, () => HttpResponse.json({ token: 'demo-session-token' })),
+  http.get(`${GW}/session/`, () =>
+    HttpResponse.json({ token: 'demo-session-token', expires_in_seconds: 3600 })
+  ),
   http.get('/api/', () => HttpResponse.json(mockGatewayServices)),
+  http.get('/api', () => HttpResponse.json(mockGatewayServices)),
 
   // Organizations
   http.get(`${GW}/organizations/`, () =>

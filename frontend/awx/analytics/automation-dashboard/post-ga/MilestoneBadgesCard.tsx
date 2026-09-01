@@ -15,10 +15,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardSectionHeading } from './DashboardSectionHeading';
 import {
-  MILESTONE_BADGES_EARNED_AT,
   MILESTONE_BADGES_EARNED_USER,
   ORG_BADGES_EARNED,
-  ORG_BADGES_EARNED_AT,
   type MilestoneBadgeId,
   type OrgBadgeId,
 } from './postGaMockData';
@@ -133,36 +131,18 @@ function sortEarnedFirst(
     .map(({ badge }) => badge);
 }
 
-function formatEarnedDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 function badgeTooltipContent({
   label,
   rule,
-  earnedAt,
-  t,
 }: Readonly<{
   label: string;
   rule: string;
-  earnedAt?: string;
-  t: (key: string, options?: Record<string, unknown>) => string;
 }>) {
   return (
     <>
       <strong>{label}</strong>
       <br />
       {rule}
-      {earnedAt ? (
-        <>
-          <br />
-          {t('Earned {{date}}', { date: formatEarnedDate(earnedAt) })}
-        </>
-      ) : null}
     </>
   );
 }
@@ -170,21 +150,15 @@ function badgeTooltipContent({
 function MilestoneBadge({
   badge,
   earned,
-  earnedAt,
 }: Readonly<{
   badge: BadgeConfig;
   earned: boolean;
-  earnedAt?: string;
 }>) {
-  const { t } = useTranslation();
-
   return (
     <Tooltip
       content={badgeTooltipContent({
         label: badge.label,
         rule: badge.rule,
-        earnedAt: earned ? earnedAt : undefined,
-        t,
       })}
       position="bottom"
     >
@@ -207,11 +181,9 @@ function MilestoneBadge({
 function MilestoneBadgeGrid({
   badges,
   earnedIds,
-  earnedAtById,
 }: Readonly<{
   badges: BadgeConfig[];
   earnedIds: readonly MilestoneBadgeId[];
-  earnedAtById: Partial<Record<MilestoneBadgeId, string>>;
 }>) {
   const earnedSet = useMemo(() => new Set(earnedIds), [earnedIds]);
   const sortedBadges = useMemo(() => sortEarnedFirst(badges, earnedIds), [badges, earnedIds]);
@@ -219,12 +191,7 @@ function MilestoneBadgeGrid({
   return (
     <div className="achievement-badges-grid--milestone">
       {sortedBadges.map((badge) => (
-        <MilestoneBadge
-          key={badge.id}
-          badge={badge}
-          earned={earnedSet.has(badge.id)}
-          earnedAt={earnedAtById[badge.id]}
-        />
+        <MilestoneBadge key={badge.id} badge={badge} earned={earnedSet.has(badge.id)} />
       ))}
     </div>
   );
@@ -233,13 +200,10 @@ function MilestoneBadgeGrid({
 function OrgBadgeGrid({
   badges,
   earnedIds,
-  earnedAtById,
 }: Readonly<{
   badges: OrgBadgeConfig[];
   earnedIds: readonly OrgBadgeId[];
-  earnedAtById: Partial<Record<OrgBadgeId, string>>;
 }>) {
-  const { t } = useTranslation();
   const earnedSet = useMemo(() => new Set(earnedIds), [earnedIds]);
 
   return (
@@ -252,8 +216,6 @@ function OrgBadgeGrid({
             content={badgeTooltipContent({
               label: badge.label,
               rule: badge.rule,
-              earnedAt: earned ? earnedAtById[badge.id] : undefined,
-              t,
             })}
             position="bottom"
           >
@@ -281,18 +243,16 @@ function BadgeShelf({
   help,
   earnedIds,
   badges,
-  earnedAtById,
 }: Readonly<{
   title: string;
-  help: string;
+  help?: string;
   earnedIds: readonly MilestoneBadgeId[];
   badges: BadgeConfig[];
-  earnedAtById: Partial<Record<MilestoneBadgeId, string>>;
 }>) {
   return (
     <div>
       <DashboardSectionHeading title={title} help={help} />
-      <MilestoneBadgeGrid badges={badges} earnedIds={earnedIds} earnedAtById={earnedAtById} />
+      <MilestoneBadgeGrid badges={badges} earnedIds={earnedIds} />
     </div>
   );
 }
@@ -336,23 +296,17 @@ export function MilestoneBadgesCard() {
       >
         <BadgeShelf
           title={t('Your achievements')}
-          help={t('Achievements you earned.')}
           earnedIds={MILESTONE_BADGES_EARNED_USER}
           badges={badges}
-          earnedAtById={MILESTONE_BADGES_EARNED_AT}
         />
         <div>
           <DashboardSectionHeading
-            title={t("Your org's achievements")}
+            title={t("Your organization's achievements")}
             help={t(
-              'Achievements any of the organizations you belong to earned. Visible to all members of your org.'
+              'Achievements any of the organizations you belong to earned. Visible to all members of your organization.'
             )}
           />
-          <OrgBadgeGrid
-            badges={orgBadges}
-            earnedIds={ORG_BADGES_EARNED}
-            earnedAtById={ORG_BADGES_EARNED_AT}
-          />
+          <OrgBadgeGrid badges={orgBadges} earnedIds={ORG_BADGES_EARNED} />
         </div>
       </CardBody>
     </Card>

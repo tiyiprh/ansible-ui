@@ -18,6 +18,7 @@ const monacoEditorPluginDefault = (monacoEditorPlugin as unknown as { default: u
 const DEV_SERVER_PROTOCOL = process.env.DEV_SERVER_PROTOCOL ?? 'https';
 const PLATFORM_SERVER = process.env.PLATFORM_SERVER as string;
 const AWX_WEBSOCKET_PREFIX = '/api/controller/v2/websocket/';
+const isDemoMode = process.env.VITE_DEMO_MODE === 'true';
 
 const environment: Record<string, string> = {
   PLATFORM_SERVER,
@@ -57,22 +58,25 @@ const config: VitestUserConfig = {
   define: { 'process.env': environment },
   server: {
     cors: false,
-    proxy: {
-      '/api': {
-        target: PLATFORM_SERVER,
-        secure: false,
-        headers: {
-          host: proxyUrl?.host ?? '',
-          origin: proxyUrl?.origin ?? '',
+    // Demo mode uses MSW in the browser — no backend proxy (undefined PLATFORM_SERVER breaks /api/).
+    proxy: isDemoMode
+      ? undefined
+      : {
+          '/api': {
+            target: PLATFORM_SERVER,
+            secure: false,
+            headers: {
+              host: proxyUrl?.host ?? '',
+              origin: proxyUrl?.origin ?? '',
+            },
+          },
+          [AWX_WEBSOCKET_PREFIX]: {
+            target: wsURL?.origin,
+            secure: false,
+            ws: true,
+            rewriteWsOrigin: true,
+          },
         },
-      },
-      [AWX_WEBSOCKET_PREFIX]: {
-        target: wsURL?.origin,
-        secure: false,
-        ws: true,
-        rewriteWsOrigin: true,
-      },
-    },
   },
   esbuild: { legalComments: 'none' },
   build: {

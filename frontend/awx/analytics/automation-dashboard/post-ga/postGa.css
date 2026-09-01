@@ -7,26 +7,26 @@
 }
 
 .streak-heat-cell--success {
-  background-color: #3d7317;
+  background-color: var(--post-ga-streak-success-color);
 }
 
 .streak-heat-cell--empty {
-  background-color: #e0e0e0;
+  background-color: var(--post-ga-streak-empty-color);
   background-image: linear-gradient(
     -45deg,
     transparent 40%,
-    rgba(0, 0, 0, 0.35) 40%,
-    rgba(0, 0, 0, 0.35) 45%,
+    color-mix(in srgb, var(--pf-t--global--border--color--default) 80%, transparent) 40%,
+    color-mix(in srgb, var(--pf-t--global--border--color--default) 80%, transparent) 45%,
     transparent 45%
   );
 }
 
-#automation-streak-legend-no-activity-count {
+#automation-streak-legend-no-successful-job-run-count {
   background-image: linear-gradient(
     -45deg,
     transparent 40%,
-    rgba(0, 0, 0, 0.35) 40%,
-    rgba(0, 0, 0, 0.35) 45%,
+    color-mix(in srgb, var(--pf-t--global--border--color--default) 80%, transparent) 40%,
+    color-mix(in srgb, var(--pf-t--global--border--color--default) 80%, transparent) 45%,
     transparent 45%
   );
 }
@@ -45,6 +45,12 @@
   flex-shrink: 0;
   /* Theme-aware decorative accent — adapts in light and dark via PF semantic token */
   --post-ga-accent-color: var(--pf-t--global--icon--color--subtle);
+  --post-ga-streak-success-color: var(--pf-t--global--color--status--success--default);
+  --post-ga-streak-empty-color: var(--pf-t--global--color--nonstatus--gray--400);
+}
+
+.pf-v6-theme-dark .post-ga-highlights-tab {
+  --post-ga-streak-empty-color: var(--pf-t--global--color--nonstatus--gray--300);
 }
 
 .post-ga-highlights-tab > * {
@@ -124,6 +130,10 @@
   flex-shrink: 0;
 }
 
+.post-ga-at-a-glance-section__title {
+  margin-bottom: var(--pf-t--global--spacer--md);
+}
+
 .post-ga-highlights-split-kpi {
   width: 100%;
   min-height: 100%;
@@ -157,6 +167,14 @@
 
 .post-ga-accent-icon {
   --pf-v6-c-icon__content--m-custom--Color: var(--post-ga-accent-color);
+}
+
+.post-ga-featured-template-star {
+  --pf-v6-c-icon__content--m-custom--Color: var(--pf-t--global--color--nonstatus--yellow--300);
+}
+
+.pf-v6-theme-dark .post-ga-featured-template-star {
+  --pf-v6-c-icon__content--m-custom--Color: var(--pf-t--global--color--nonstatus--yellow--default);
 }
 
 .post-ga-help-popover-trigger {
