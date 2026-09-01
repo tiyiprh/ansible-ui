@@ -21,7 +21,7 @@
   );
 }
 
-#automation-streak-legend-no-successful-job-run-count {
+#automation-streak-legend-no-activity-count {
   background-image: linear-gradient(
     -45deg,
     transparent 40%,

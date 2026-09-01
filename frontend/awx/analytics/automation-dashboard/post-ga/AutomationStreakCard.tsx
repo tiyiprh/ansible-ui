@@ -107,7 +107,7 @@ function StreakDayStrip({
                   color: 'var(--post-ga-streak-success-color)',
                 },
                 {
-                  label: t('No successful job run'),
+                  label: t('No activity'),
                   color: 'var(--post-ga-streak-empty-color)',
                 },
               ]}
