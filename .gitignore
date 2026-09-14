@@ -5,6 +5,7 @@
 **/blob-report/
 **/coverage/
 **/dist/
+**/dist-demo/
 **/dist-insights/
 **/node_modules/
 **/playwright-report/
