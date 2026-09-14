@@ -18,7 +18,7 @@ import { useGet } from '@ansible/common-ui/crud/useGet';
 import { useOptions } from '@ansible/common-ui/crud/useOptions';
 import { usePatchRequest } from '@ansible/common-ui/crud/usePatchRequest';
 import { usePostRequest } from '@ansible/common-ui/crud/usePostRequest';
-import { Alert } from '@patternfly/react-core';
+import { Alert, GridItem } from '@patternfly/react-core';
 import jsyaml from 'js-yaml';
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -102,6 +102,8 @@ export function CreateRulebookActivation() {
           log_level: LogLevelEnum.Error,
           is_enabled: true,
           enable_persistence: false,
+          store_debug_logs: false,
+          k8s_service_name: '',
         }}
       >
         <RulebookActivationInputs />
@@ -197,6 +199,10 @@ export function RulebookActivationInputs() {
     name: 'enable_persistence',
   }) as boolean;
 
+  const logLevel = useWatch<IEdaRulebookActivationInputs>({
+    name: 'log_level',
+  }) as LogLevelEnum;
+
   useEffect(() => {
     setValue('source_mappings', jsyaml.dump(sourceMappings));
   }, [setValue, sourceMappings]);
@@ -221,6 +227,12 @@ export function RulebookActivationInputs() {
       setValue('rule_engine_credential_id', null);
     }
   }, [enablePersistence, config?.managed_cloud_install, setValue]);
+
+  useEffect(() => {
+    if (logLevel !== LogLevelEnum.Debug) {
+      setValue('store_debug_logs', false);
+    }
+  }, [logLevel, setValue]);
 
   return (
     <>
@@ -273,6 +285,21 @@ export function RulebookActivationInputs() {
         labelHelp={restartPolicyHelpBlock}
         labelHelpTitle={t('Restart policy')}
       />
+      <PageFormTextInput<IEdaRulebookActivationInputs>
+        name="k8s_service_name"
+        label={t('Service name')}
+        id={'k8s_service_name'}
+        placeholder={t('Enter service name')}
+        labelHelp={t('Optional service name.')}
+        labelHelpTitle={t('Service name')}
+      />
+      <PageFormSwitch<IEdaRulebookActivationInputs>
+        id="rulebook-activation"
+        name="is_enabled"
+        label={t('Rulebook activation enabled?')}
+        labelHelp={t('Automatically enable this rulebook activation to run.')}
+        labelHelpTitle={t('Rulebook activation enabled')}
+      />
       <PageFormSelect<IEdaRulebookActivationInputs>
         name="log_level"
         label={t('Log level')}
@@ -282,23 +309,30 @@ export function RulebookActivationInputs() {
         labelHelp={logLevelHelpBlock}
         labelHelpTitle={t('Log level')}
       />
-      {config?.deployment_type === 'k8s' && (
-        <PageFormTextInput<IEdaRulebookActivationInputs>
-          name="k8s_service_name"
-          label={t('Service name')}
-          id={'k8s_service_name'}
-          placeholder={t('Enter service name')}
-          labelHelp={t('Optional service name.')}
-          labelHelpTitle={t('Service name')}
-        />
+      {logLevel === LogLevelEnum.Debug && (
+        <>
+          <GridItem span={12}>
+            <Alert
+              variant="warning"
+              isInline
+              title={t('Debug logging generates significantly more data.')}
+            >
+              {t(
+                'By default, debug logs are sent to container logs (stdout) but are not stored in the database. Enable the option below to persist them, but be aware this can significantly increase database storage.'
+              )}
+            </Alert>
+          </GridItem>
+          <PageFormSwitch<IEdaRulebookActivationInputs>
+            label={t('Store debug logs in database')}
+            labelHelpTitle={t('Store debug logs in database')}
+            labelHelp={t(
+              'When enabled, debug logs are retained in the activation history and can significantly increase database storage.'
+            )}
+            id="store-debug-logs"
+            name="store_debug_logs"
+          />
+        </>
       )}
-      <PageFormSwitch<IEdaRulebookActivationInputs>
-        id="rulebook-activation"
-        name="is_enabled"
-        label={t('Rulebook activation enabled?')}
-        labelHelp={t('Automatically enable this rulebook activation to run.')}
-        labelHelpTitle={t('Rulebook activation enabled')}
-      />
       <PageFormSection singleColumn>
         <PageFormDataEditor<IEdaRulebookActivationInputs>
           name="extra_var"
@@ -455,6 +489,7 @@ export type IEdaRulebookActivationInputs = Omit<
   project_id: string;
   eda_credentials?: number[] | EdaCredential[] | null;
   enable_persistence?: boolean;
+  store_debug_logs?: boolean;
   rule_engine_credential_id?: number | null;
   source_mappings?: string;
   restart_on_project_update: boolean;

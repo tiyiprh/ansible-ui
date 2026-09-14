@@ -1,0 +1,20 @@
+stages:
+  - deploy
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "anstrat1758-ux"'
+    - if: '$CI_COMMIT_BRANCH == "EDA-unbounded-log-growth"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+pages:
+  stage: deploy
+  tags:
+    - itup-alm-x86
+  script:
+    - echo "Publishing pre-built static files from public/"
+    - test -f public/index.html
+    - test -f public/404.html
+  artifacts:
+    paths:
+      - public/

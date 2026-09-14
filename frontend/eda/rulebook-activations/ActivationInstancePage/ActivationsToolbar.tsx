@@ -19,6 +19,7 @@ interface RulebookActivationToolbarProps {
   isFollowModeEnabled: boolean;
   setIsFollowModeEnabled: (isFollowModeEnabled: boolean) => void;
   isRunning: boolean;
+  onClearLogs?: () => void;
 }
 
 export function RulebookActivationToolbar(props: RulebookActivationToolbarProps) {
@@ -29,6 +30,7 @@ export function RulebookActivationToolbar(props: RulebookActivationToolbarProps)
     isFollowModeEnabled,
     setIsFollowModeEnabled,
     isRunning,
+    onClearLogs = () => undefined,
   } = props;
   const handleFollowToggle = () => {
     if (isFollowModeEnabled) {
@@ -56,6 +58,9 @@ export function RulebookActivationToolbar(props: RulebookActivationToolbarProps)
               {isFollowModeEnabled ? t('Unfollow') : t('Follow')}
             </Button>
           ) : null}
+          <Button variant="secondary" isDanger onClick={onClearLogs}>
+            {t('Clear logs')}
+          </Button>
         </ToolbarContent>
       </Toolbar>
     </ToolbarContainer>

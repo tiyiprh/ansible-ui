@@ -53,6 +53,13 @@ import { Redirect } from './Redirect';
 import { usePersonaView } from './persona-view/usePersonaView';
 import { useAutomationDashboardCollectionStatus } from '../../frontend/awx/analytics/automation-dashboard/common/useAutomationDashboardCollectionStatus';
 
+function removeAllNavigationItemsById(navigationItems: PageNavigationItem[], id: string): void {
+  let removed = removeNavigationItemById(navigationItems, id);
+  while (removed) {
+    removed = removeNavigationItemById(navigationItems, id);
+  }
+}
+
 export function usePlatformNavigation() {
   const { t } = useTranslation();
 
@@ -199,6 +206,30 @@ export function usePlatformNavigation() {
       }
     }
 
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
+      const demoHiddenSectionIds = [
+        PlatformRoute.Overview,
+        PlatformRoute.AWX,
+        PlatformRoute.HUB,
+        PlatformRoute.Access,
+        PlatformRoute.QuickStarts,
+        PlatformRoute.ApplicationLinks,
+        AwxRoute.Analytics,
+        AwxRoute.Settings,
+      ];
+      for (const id of demoHiddenSectionIds) {
+        const item = findNavigationItemById(navigationItems, id);
+        if (item) {
+          item.hidden = true;
+        }
+      }
+
+      const root = findNavigationItemById(navigationItems, PlatformRoute.Root);
+      if (root && 'element' in root) {
+        root.element = <Navigate to="decisions/rulebook-activations" replace />;
+      }
+    }
+
     return navigationItems;
   }, [
     t,
@@ -269,6 +300,13 @@ function useAutomationDecisionsNavigation(): PageNavigationItem {
   removeNavigationItemById(edaNav, EdaRoute.Users);
   removeNavigationItemById(edaNav, EdaRoute.Access);
   removeNavigationItemById(edaNav, EdaRoute.Settings);
+
+  if (import.meta.env.VITE_DEMO_MODE === 'true') {
+    const edaRoot = edaNav.find((item) => item.path === '' && !item.id);
+    if (edaRoot && 'element' in edaRoot) {
+      edaRoot.element = <Navigate to="./rulebook-activations" replace />;
+    }
+  }
 
   return {
     id: PlatformRoute.EDA,
@@ -345,6 +383,26 @@ function useAutomationContentNavigation(): PageNavigationItem {
   removeNavigationItemById(hubNav, HubRoute.Users);
   removeNavigationItemById(hubNav, HubRoute.Settings);
   removeNavigationItemById(hubNav, HubRoute.Access);
+
+  if (import.meta.env.VITE_DEMO_MODE === 'true') {
+    const hubDemoHiddenIds = [
+      HubRoute.Collections,
+      HubRoute.Namespaces,
+      HubRoute.SignatureKeys,
+      HubRoute.Tasks,
+      HubRoute.Approvals,
+      HubRoute.Remotes,
+      HubRoute.Repositories,
+    ];
+    for (const id of hubDemoHiddenIds) {
+      removeAllNavigationItemsById(hubNav, id);
+    }
+
+    const registriesNav = findNavigationItemById(hubNav, HubRoute.RemoteRegistries);
+    if (registriesNav) {
+      registriesNav.label = t('Registries');
+    }
+  }
 
   return {
     id: PlatformRoute.HUB,

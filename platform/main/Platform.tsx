@@ -12,6 +12,39 @@ document.body.appendChild(botNameEl);
 
 document.body.style.backgroundColor = '#222';
 
-const root = createRoot(document.getElementById('app')!);
+async function enableDemoMocks() {
+  if (import.meta.env.VITE_DEMO_MODE !== 'true') {
+    return;
+  }
+  const { worker } = await import('../src/mocks/demo/browser');
 
-root.render(<Main />);
+  const OriginalWebSocket = window.WebSocket;
+
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: {
+      url: '/mockServiceWorker.js',
+      options: { updateViaCache: 'none' },
+    },
+  });
+
+  window.WebSocket = OriginalWebSocket;
+
+  const basePath = import.meta.env.BASE_URL ?? '/';
+  if (
+    window.location.pathname === basePath ||
+    window.location.pathname === basePath.replace(/\/$/, '')
+  ) {
+    window.history.replaceState({}, '', `${basePath}decisions/rulebook-activations`);
+  }
+}
+
+void enableDemoMocks()
+  .catch((e: unknown) => {
+    // eslint-disable-next-line no-console
+    console.error('[demo] MSW failed to start:', e);
+  })
+  .then(() => {
+    const root = createRoot(document.getElementById('app')!);
+    root.render(<Main />);
+  });

@@ -33,6 +33,7 @@ import {
   useRestartRulebookActivationsWithWarning,
 } from '../hooks/useControlRulebookActivations';
 import { useCopyRulebookActivation } from '../hooks/useCopyRulebookactivation';
+import { useClearLogs } from '../hooks/useClearLogs';
 import {
   useDeleteRulebookActivations,
   useDeleteRulebookActivationsWithWarning,
@@ -78,6 +79,7 @@ export function RulebookActivationPage() {
   });
 
   const copyRulebookActivation = useCopyRulebookActivation();
+  const clearLogs = useClearLogs();
   const enableActivationsWithWarning = useEnableRulebookActivationsWithWarning(refresh);
 
   const deleteActivations = useDeleteRulebookActivations((deleted) => {
@@ -232,6 +234,15 @@ export function RulebookActivationPage() {
             type: PageActionType.Button,
             selection: PageActionSelection.Single,
             icon: TrashIcon,
+            label: t('Clear logs'),
+            onClick: (activation: EdaRulebookActivation) =>
+              clearLogs([{ id: activation.id, name: activation.name, scope: 'activation' }]),
+            isDanger: true,
+          },
+          {
+            type: PageActionType.Button,
+            selection: PageActionSelection.Single,
+            icon: TrashIcon,
             label: t('Delete rulebook activation'),
             onClick: (rulebookActivation: EdaRulebookActivation) =>
               deleteRulebookActivations(rulebookActivation),
@@ -253,6 +264,7 @@ export function RulebookActivationPage() {
     pageNavigate,
     restartRulebookActivation,
     copyRulebookActivation,
+    clearLogs,
     canPatchActivation,
     deleteRulebookActivations,
   ]);

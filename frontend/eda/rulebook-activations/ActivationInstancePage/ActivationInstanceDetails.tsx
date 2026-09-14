@@ -9,6 +9,7 @@ import { edaAPI } from '../../common/eda-utils';
 import { EdaActivationInstance } from '../../interfaces/EdaActivationInstance';
 import { StatusEnum } from '../../interfaces/generated/eda-api';
 import { useActivationHistoryLogsFilters } from '../hooks/useActivationHistoryLogsFilters';
+import { useClearLogs } from '../hooks/useClearLogs';
 import { ActivationInstanceEvents } from './ActivationInstanceEvents';
 import { RulebookActivationToolbar } from './ActivationsToolbar';
 
@@ -40,6 +41,7 @@ function ActivationInstanceDetailsInner(props: { activationInstance: EdaActivati
     [activationInstance?.status]
   );
   const [isFollowModeEnabled, setIsFollowModeEnabled] = useState(isRunning);
+  const clearLogs = useClearLogs();
 
   return (
     <>
@@ -68,6 +70,15 @@ function ActivationInstanceDetailsInner(props: { activationInstance: EdaActivati
         isFollowModeEnabled={isFollowModeEnabled}
         setIsFollowModeEnabled={setIsFollowModeEnabled}
         isRunning={isRunning}
+        onClearLogs={() =>
+          clearLogs([
+            {
+              id: activationInstance.id,
+              name: activationInstance.name ?? `${activationInstance.id}`,
+              scope: 'instance',
+            },
+          ])
+        }
       ></RulebookActivationToolbar>
       <ActivationInstanceEvents
         toolbarFilters={toolbarFilters}
