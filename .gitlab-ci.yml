@@ -3,7 +3,6 @@ stages:
 
 workflow:
   rules:
-    - if: '$CI_COMMIT_BRANCH == "anstrat1758-ux"'
     - if: '$CI_COMMIT_BRANCH == "EDA-unbounded-log-growth"'
     - if: '$CI_COMMIT_BRANCH == "EDA-unbounded-log-growth-clean"'
     - if: '$CI_COMMIT_BRANCH == "main"'
