@@ -139,7 +139,7 @@ export function ClearLogsDialog({ targets, onClose, onConfirm }: ClearLogsDialog
           <Checkbox
             id="clear-logs-confirm"
             label={t(
-              'Yes, I confirm that I want to permanently delete these logs. This action cannot be undone.'
+              'Yes, I confirm that I want to permanently delete these logs and understand that this action cannot be undone.'
             )}
             isChecked={confirmed}
             onChange={(_event, checked) => setConfirmed(checked)}
