@@ -1109,7 +1109,7 @@
       return fn;
     }
     Event2.chain = chain;
-    const HaltChainable = Symbol("HaltChainable");
+    const HaltChainable = /* @__PURE__ */ Symbol("HaltChainable");
     class ChainableSynthesis {
       constructor() {
         this.steps = [];
@@ -14318,9 +14318,6 @@
     text = text.replace(trimDashesRegex, "");
     return { text, hasSeparatorLine };
   }
-
-  // ../node_modules/monaco-editor/esm/vs/base/common/symbols.js
-  var MicrotaskDelay = Symbol("MicrotaskDelay");
 
   // ../node_modules/monaco-editor/esm/vs/base/common/async.js
   var runWhenGlobalIdle;
