@@ -59,7 +59,7 @@ export function RulebookActivationToolbar(props: RulebookActivationToolbarProps)
             </Button>
           ) : null}
           <Button variant="secondary" isDanger onClick={onClearLogs}>
-            {t('Clear logs')}
+            {t('Delete logs')}
           </Button>
         </ToolbarContent>
       </Toolbar>

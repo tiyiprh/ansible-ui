@@ -19,11 +19,11 @@ export function useClearLogs() {
     (targets: readonly ClearLogsTarget[], options: ClearLogsOptions) => {
       setDialog(undefined);
       progressDialog({
-        title: t('Clearing logs'),
+        title: t('Deleting logs'),
         description: t(
-          'Removing stored logs. Activations continue running, and container logs are not affected.'
+          'Deleting stored database logs. Rulebook activations continue running, and system logs on activation workers remain unaffected.'
         ),
-        processingText: t('Clearing logs...'),
+        processingText: t('Deleting logs...'),
         isDanger: true,
         items: [...targets],
         keyFn: (target) => `${target.scope}-${target.id}`,
@@ -33,7 +33,11 @@ export function useClearLogs() {
             target.scope === 'activation'
               ? edaAPI`/activations/${target.id.toString()}/clear-logs/`
               : edaAPI`/activation-instances/${target.id.toString()}/clear-logs/`,
-            options.mode === 'date' ? { older_than: options.date } : { keep_days: options.days },
+            options.mode === 'all'
+              ? undefined
+              : options.mode === 'date'
+                ? { older_than: options.date }
+                : { keep_days: options.days },
             signal
           ),
       });

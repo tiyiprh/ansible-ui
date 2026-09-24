@@ -1,5 +1,6 @@
 import { PageLayout, PageTable } from '@ansible/ansible-ui-framework';
 import {
+  IPageAction,
   PageActionSelection,
   PageActionType,
 } from '@ansible/ansible-ui-framework/PageActions/PageAction';
@@ -33,14 +34,14 @@ export function RulebookActivationHistory() {
     toolbarFilters,
     tableColumns,
   });
-  const toolbarActions = useMemo(
+  const toolbarActions = useMemo<IPageAction<EdaActivationInstance>[]>(
     () =>
       activation
         ? [
             {
               type: PageActionType.Button,
               selection: PageActionSelection.None,
-              label: t('Clear logs'),
+              label: t('Delete logs'),
               isPinned: true,
               variant: ButtonVariant.secondary,
               isDanger: true,
